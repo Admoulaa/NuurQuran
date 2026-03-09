@@ -32,7 +32,7 @@ export function SettingsPage({
           <h2 style={{ ...styles.sectionTitle, color: theme.text }}>Thème</h2>
         </div>
         <div style={styles.themeGrid}>
-          {Object.values({ sand: THEMES.sand, night: THEMES.night, ocean: THEMES.ocean, rose: THEMES.rose }).map((option) => (
+          {Object.values(THEMES).map((option) => (
             <button
               key={option.id}
               type="button"
