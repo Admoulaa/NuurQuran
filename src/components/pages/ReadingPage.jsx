@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useCallback } from "react";
+import { useEffect, useMemo, useRef, useCallback, useState } from "react";
 import { PageHeader } from "../PageHeader";
 import { Card } from "../Card";
 import { SurahCard } from "../SurahCard";
@@ -6,6 +6,11 @@ import { VerseCard } from "../VerseCard";
 import { SURAHS } from "../../data/constants";
 import { normalize, getTimingForVerse } from "../../utils/helpers";
 
+/**
+ * ReadingPage - Page de lecture Coran Pro
+ * Mode lecture pure : focus sur le texte, traductions visibles
+ * Modes: Arabe seul, Arabe + Traduction, Complet (Arabe + Trad + Phonétique)
+ */
 export function ReadingPage({
   currentSurah,
   currentSurahNumber,
@@ -39,9 +44,12 @@ export function ReadingPage({
   audioRef,
   styles,
   theme,
+  readingMode, // "arabic" | "translation" | "full"
+  setReadingMode,
 }) {
   const verseRefs = useRef({});
   const isSeekingRef = useRef(false);
+  const containerRef = useRef(null);
 
   // Scroll vers le verset actif
   useEffect(() => {
@@ -91,9 +99,6 @@ export function ReadingPage({
 
   // Déterminer si un verset doit être mis en évidence
   const isVerseActive = useCallback((verseNumber) => {
-    if (isSeekingRef.current) {
-      return verseNumber === currentVerse;
-    }
     return verseNumber === currentVerse;
   }, [currentVerse]);
 
@@ -102,34 +107,57 @@ export function ReadingPage({
     return glowEnabled && isVerseActive(verseNumber) && isPlaying;
   }, [glowEnabled, isVerseActive, isPlaying]);
 
+  // Langues disponibles
+  const languages = [
+    { value: "fr", label: "Français" },
+    { value: "en", label: "English" },
+    { value: "es", label: "Español" },
+    { value: "ur", label: "اردو" },
+    { value: "tr", label: "Türkçe" },
+    { value: "id", label: "Indonesia" },
+  ];
+
+  // Modes de lecture
+  const readingModes = [
+    { id: "arabic", label: "Arabe", icon: "🕋" },
+    { id: "translation", label: "Arabe + Trad", icon: "📜" },
+    { id: "full", label: "Complet", icon: "✨" },
+  ];
+
   return (
-    <div style={styles.pageContent}>
+    <div style={styles.pageContent} ref={containerRef}>
       <PageHeader
         eyebrow="Lecture"
-        title={currentSurah.translit}
-        description={`${currentSurah.fr} · ${selectedReciter.name}`}
+        title={currentSurah?.translit || "Lecture"}
+        description={`${currentSurah?.fr || ""} · ${selectedReciter?.name || ""}`}
         styles={styles}
         theme={theme}
         action={
           <button
             type="button"
-            onClick={() => onToggleBookmark(currentSurah.number)}
+            onClick={() => onToggleBookmark(currentSurah?.number)}
             style={{
               ...styles.secondaryButton,
-              borderColor: bookmarks.includes(currentSurah.number) ? theme.accent : theme.border,
-              background: bookmarks.includes(currentSurah.number) ? theme.accentSoft : theme.pageBg,
-              color: bookmarks.includes(currentSurah.number) ? theme.accentStrong : theme.text,
+              borderColor: bookmarks?.includes(currentSurah?.number) ? theme.accent : theme.border,
+              background: bookmarks?.includes(currentSurah?.number) ? theme.accentSoft : theme.pageBg,
+              color: bookmarks?.includes(currentSurah?.number) ? theme.accentStrong : theme.text,
+              padding: "8px 14px",
+              fontSize: 13,
             }}
           >
-            {bookmarks.includes(currentSurah.number) ? "Retirer le signet" : "Ajouter aux signets"}
+            {bookmarks?.includes(currentSurah?.number) ? "★ Signet" : "☆ Ajouter"}
           </button>
         }
       />
 
+      {/* Barre d'outils */}
       <Card styles={styles} theme={theme}>
+        {/* Recherche + Sélection */}
         <div style={styles.readingToolbarGrid}>
           <div style={styles.fieldWrap}>
-            <label htmlFor="surah-search" style={{ ...styles.label, color: theme.text }}>Recherche de sourate</label>
+            <label htmlFor="surah-search" style={{ ...styles.label, color: theme.text }}>
+              🔍 Recherche
+            </label>
             <input
               id="surah-search"
               value={search}
@@ -140,7 +168,9 @@ export function ReadingPage({
           </div>
 
           <div style={styles.fieldWrap}>
-            <label htmlFor="surah-select" style={{ ...styles.label, color: theme.text }}>Sourate</label>
+            <label htmlFor="surah-select" style={{ ...styles.label, color: theme.text }}>
+              📖 Sourate
+            </label>
             <select
               id="surah-select"
               value={currentSurahNumber}
@@ -159,60 +189,84 @@ export function ReadingPage({
           </div>
 
           <div style={styles.fieldWrap}>
-            <label htmlFor="lang-select" style={{ ...styles.label, color: theme.text }}>Langue</label>
+            <label htmlFor="lang-select" style={{ ...styles.label, color: theme.text }}>
+              🌐 Langue
+            </label>
             <select
               id="lang-select"
               value={language}
               onChange={(event) => setLanguage(event.target.value)}
               style={{ ...styles.select, borderColor: theme.border, background: theme.pageBg, color: theme.text }}
             >
-              {Object.entries({ fr: { label: "Français" }, en: { label: "English" }, es: { label: "Español" }, ur: { label: "اردو" }, tr: { label: "Türkçe" }, id: { label: "Indonesia" } }).map(([key, value]) => (
-                <option key={key} value={key}>{value.label}</option>
+              {languages.map((lang) => (
+                <option key={lang.value} value={lang.value}>{lang.label}</option>
               ))}
             </select>
           </div>
         </div>
 
-        <div style={styles.readingActions}>
-          <button type="button" onClick={() => setShowPhonetic((prev) => !prev)} style={{ ...styles.secondaryButton, borderColor: theme.border, background: theme.pageBg, color: theme.text }}>
-            {showPhonetic ? "Masquer la translittération" : "Afficher la translittération"}
-          </button>
-          <button type="button" onClick={onEnableAudio} style={{ ...styles.primaryButton, background: theme.accentGradient }}>
-            Activer l'audio
-          </button>
-          <button
-            type="button"
-            onClick={onTogglePlay}
-            disabled={!audioReady || Boolean(audioError)}
-            style={{ ...styles.secondaryButton, borderColor: theme.border, background: theme.pageBg, color: theme.text, ...((!audioReady || audioError) ? styles.buttonDisabled : null) }}
-          >
-            {isPlaying ? "Pause" : "Lecture"}
-          </button>
+        {/* Sélecteur de mode de lecture */}
+        <div style={{ marginTop: 16 }}>
+          <label style={{ ...styles.label, color: theme.text, marginBottom: 10, display: "block" }}>
+            📚 Mode de lecture
+          </label>
+          <div style={styles.readingModeSelector}>
+            {readingModes.map((mode) => (
+              <button
+                key={mode.id}
+                type="button"
+                onClick={() => setReadingMode(mode.id)}
+                style={{
+                  ...styles.readingModeButton,
+                  ...(readingMode === mode.id ? styles.readingModeButtonActive : {}),
+                  background: readingMode === mode.id ? theme.accentGradient : theme.pageBg,
+                  borderColor: readingMode === mode.id ? "transparent" : theme.border,
+                  color: readingMode === mode.id ? "#fff" : theme.text,
+                }}
+              >
+                <span style={{ marginRight: 6 }}>{mode.icon}</span>
+                {mode.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div style={{ ...styles.helperText, color: audioError ? "#b42318" : theme.muted }}>
-          {audioError
-            ? audioError
-            : timingState.loading
-            ? "Chargement du suivi verset par verset..."
-            : timingState.timings && timingState.timings.length
-            ? "Suivi automatique actif - Lecture continue segmentée"
-            : timingState.error || "Suivi simple disponible pour cette sourate."}
-        </div>
+        {/* Toggle phonétique (visible en mode complet) */}
+        {readingMode === "full" && (
+          <div style={{ marginTop: 12 }}>
+            <button 
+              type="button" 
+              onClick={() => setShowPhonetic(!showPhonetic)}
+              style={{
+                ...styles.secondaryButton,
+                borderColor: theme.border,
+                background: showPhonetic ? theme.accentSoft : theme.pageBg,
+                color: showPhonetic ? theme.accentStrong : theme.text,
+                fontSize: 13,
+                padding: "8px 14px",
+              }}
+            >
+              {showPhonetic ? "✓ Phonétique" : "○ Phonétique"}
+            </button>
+          </div>
+        )}
       </Card>
 
+      {/* Résultats de recherche */}
       {search ? (
         <Card styles={styles} theme={theme}>
           <div style={styles.sectionHeader}>
             <h2 style={{ ...styles.sectionTitle, color: theme.text }}>Résultats</h2>
-            <span style={{ ...styles.sectionMeta, color: theme.muted }}>{filteredSurahs.length} trouvé{filteredSurahs.length > 1 ? "s" : ""}</span>
+            <span style={{ ...styles.sectionMeta, color: theme.muted }}>
+              {filteredSurahs.length} trouvé{filteredSurahs.length > 1 ? "s" : ""}
+            </span>
           </div>
           <div style={styles.stack}>
             {filteredSurahs.slice(0, 24).map((surah) => (
               <SurahCard
                 key={surah.number}
                 item={surah}
-                bookmarked={bookmarks.includes(surah.number)}
+                bookmarked={bookmarks?.includes(surah.number)}
                 active={surah.number === currentSurahNumber}
                 onOpen={onOpenSurah}
                 onToggleBookmark={onToggleBookmark}
@@ -225,29 +279,42 @@ export function ReadingPage({
         </Card>
       ) : null}
 
-      <Card styles={styles} theme={theme}>
-        <div style={styles.surahSummaryTop}>
-          <div>
-            <div style={styles.currentSurahTitleWrap}>
-              <span
-                aria-hidden="true"
-                style={{
-                  ...styles.statusLight,
-                  background: isTrackActive ? theme.accent : theme.border,
-                  boxShadow: isTrackActive && glowEnabled ? `0 0 0 4px ${theme.verseGlow}, 0 0 18px ${theme.glow}` : "none",
-                }}
-              />
-              <h2 style={{ ...styles.sectionTitle, color: theme.text }}>{currentSurah.translit}</h2>
+      {/* En-tête de la sourate */}
+      {!search && remoteState.data && (
+        <Card styles={styles} theme={theme}>
+          <div style={styles.surahSummaryTop}>
+            <div>
+              <div style={styles.currentSurahTitleWrap}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    ...styles.statusLight,
+                    background: isTrackActive ? theme.accent : theme.border,
+                    boxShadow: isTrackActive && glowEnabled ? `0 0 0 4px ${theme.verseGlow}, 0 0 18px ${theme.glow}` : "none",
+                  }}
+                />
+                <h2 style={{ ...styles.sectionTitle, color: theme.text, margin: 0 }}>
+                  {currentSurah?.translit}
+                </h2>
+              </div>
+              <div style={{ ...styles.sectionMeta, color: theme.muted, marginTop: 4 }}>
+                {currentSurah?.fr} · {currentSurah?.type}
+              </div>
             </div>
-            <div style={{ ...styles.sectionMeta, color: theme.muted }}>{currentSurah.fr}</div>
+            <div dir="rtl" style={{ ...styles.currentSurahArabic, color: theme.text, fontSize: 28 }}>
+              {currentSurah?.arabic}
+            </div>
           </div>
-          <div dir="rtl" style={{ ...styles.currentSurahArabic, color: theme.text }}>{currentSurah.arabic}</div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
+      {/* Chargement */}
       {remoteState.loading ? (
         <Card styles={styles} theme={theme}>
-          <div style={{ ...styles.loadingBox, color: theme.muted }}>Chargement de la sourate…</div>
+          <div style={{ ...styles.loadingBox, color: theme.muted, textAlign: "center", padding: 40 }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
+            <div>Chargement de la sourate…</div>
+          </div>
         </Card>
       ) : remoteState.error ? (
         <Card styles={styles} theme={theme}>
@@ -257,6 +324,7 @@ export function ReadingPage({
           </div>
         </Card>
       ) : (
+        /* Liste des versets */
         <div style={styles.stack}>
           {verses.map((verse) => {
             const isActive = isVerseActive(verse.numberInSurah);
@@ -273,7 +341,8 @@ export function ReadingPage({
                   verse={verse}
                   active={isActive}
                   glowEnabled={showGlow}
-                  showPhonetic={showPhonetic}
+                  showPhonetic={showPhonetic && readingMode === "full"}
+                  showTranslation={readingMode !== "arabic"}
                   language={language}
                   onSelect={() => handleSelectVerse(verse.numberInSurah)}
                   onToggleLoop={(event) => {
@@ -290,6 +359,35 @@ export function ReadingPage({
             );
           })}
         </div>
+      )}
+
+      {/* Fin de la sourate */}
+      {!search && remoteState.data && verses.length > 0 && (
+        <Card styles={styles} theme={theme}>
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <div style={{ 
+              fontSize: 24, 
+              color: theme.accentStrong,
+              marginBottom: 8,
+            }}>
+              🤲
+            </div>
+            <div style={{ 
+              fontSize: 16, 
+              fontWeight: 700, 
+              color: theme.text,
+            }}>
+              Fin de {currentSurah?.translit}
+            </div>
+            <div style={{ 
+              fontSize: 14, 
+              color: theme.muted,
+              marginTop: 8,
+            }}>
+              {verses.length} versets
+            </div>
+          </div>
+        </Card>
       )}
     </div>
   );

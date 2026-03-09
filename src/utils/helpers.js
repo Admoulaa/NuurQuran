@@ -1,16 +1,16 @@
-import { RECITER_MAPPING } from "../data/constants";
+import { RECITER_VERSE_SERVERS, RECITER_MAPPING } from "../data/constants";
 
 /**
  * Helpers audio - Fonctions pures pour l'audio
  */
 
 // ============================================
-// AUDIO PAR VERSET - le-coran.com
+// AUDIO PAR VERSET - mp3quran.net
 // ============================================
 
 /**
  * Génère l'URL audio pour un verset spécifique
- * Priorité: le-coran.com (Alafasy) > mp3quran.net (fallback)
+ * Utilise mp3quran.net pour les récitants supportés
  * 
  * @param {number} surahNumber - Numéro de la sourate (1-114)
  * @param {number} verseNumber - Numéro du verset
@@ -18,19 +18,14 @@ import { RECITER_MAPPING } from "../data/constants";
  * @returns {string} URL audio du verset
  */
 export function getVerseAudioUrl(surahNumber, verseNumber, reciterId) {
-  const surah = padSurah(surahNumber);
   const verse = padSurah(verseNumber);
-  const verseKey = surah + verse; // ex: "002001"
   
-  // Si le récitant est Alafasy, utiliser le-coran.com
-  if (reciterId === "mishary-alafasy") {
-    return `https://audio.coran-islam.com/arabe/Alafasy/${verseKey}.mp3`;
-  }
+  // Vérifier si le récitant a un serveur per-verse configuré
+  const verseServer = RECITER_VERSE_SERVERS[reciterId];
   
-  // Fallback: utiliser mp3quran.net avec le serveur du récitant
-  const mapping = RECITER_MAPPING[reciterId];
-  if (mapping && mapping.mp3quran_server) {
-    return `${mapping.mp3quran_server}${verse}.mp3`;
+  if (verseServer) {
+    // Utiliser le serveur mp3quran.net du récitant
+    return `${verseServer.server}${verseServer.path}${verse}.mp3`;
   }
   
   // Fallback par défaut: mp3quran Alafasy
@@ -38,12 +33,13 @@ export function getVerseAudioUrl(surahNumber, verseNumber, reciterId) {
 }
 
 /**
- * Vérifie si le récitant supporte l'audio par verset sur le-coran.com
+ * Vérifie si le récitant supporte l'audio par verset
  * @param {string} reciterId - ID du récitant
  * @returns {boolean}
  */
 export function hasPerVerseAudio(reciterId) {
-  return reciterId === "mishary-alafasy";
+  // Le récitant doit avoir une entrée dans RECITER_VERSE_SERVERS
+  return !!RECITER_VERSE_SERVERS[reciterId];
 }
 
 /**
@@ -236,4 +232,3 @@ export function fetchJson(url, signal) {
     return response.json();
   });
 }
-
