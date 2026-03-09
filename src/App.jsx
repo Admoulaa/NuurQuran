@@ -110,17 +110,32 @@ export default function App() {
     if (!timingState.hasTimings || !audioPlayer.isPlaying) return;
 
     let animationId;
-    let lastVerse = currentVerse;
+    let lastVerse = null;
 
     const updateVerse = () => {
-      const currentTimeMs = audioRef.current?.currentTime * 1000;
-      if (currentTimeMs) {
-        const verse = findCurrentVerse(timingState.timings, currentTimeMs);
-        if (verse !== lastVerse && verse > 0) {
-          lastVerse = verse;
-          setCurrentVerse(verse);
-        }
+      const audio = audioRef.current;
+      if (!audio) {
+        animationId = requestAnimationFrame(updateVerse);
+        return;
       }
+      
+      const currentTimeMs = audio.currentTime * 1000;
+      const durationMs = audio.duration * 1000;
+      
+      // Skip if audio time is invalid (NaN, 0, or beyond duration)
+      if (!currentTimeMs || isNaN(currentTimeMs) || currentTimeMs <= 0 || currentTimeMs > durationMs + 5000) {
+        animationId = requestAnimationFrame(updateVerse);
+        return;
+      }
+      
+      const verse = findCurrentVerse(timingState.timings, currentTimeMs);
+      
+      // Only update if verse changed AND is valid
+      if (verse !== lastVerse && verse > 0 && verse <= timingState.timings.length) {
+        lastVerse = verse;
+        setCurrentVerse(verse);
+      }
+      
       animationId = requestAnimationFrame(updateVerse);
     };
 

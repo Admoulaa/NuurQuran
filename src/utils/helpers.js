@@ -44,9 +44,10 @@ export function hasPerVerseAudio(reciterId) {
 
 /**
  * Trouver le verset actuel depuis le temps audio
+ * Returns null if no verse matches (rather than returning last verse)
  */
 export function findCurrentVerse(timings, currentTimeMs) {
-  if (!timings || timings.length === 0) return 1;
+  if (!timings || timings.length === 0) return null;
   
   for (let i = 0; i < timings.length; i++) {
     const current = timings[i];
@@ -60,7 +61,8 @@ export function findCurrentVerse(timings, currentTimeMs) {
     }
   }
   
-  return timings[timings.length - 1]?.verse || 1;
+  // Return null instead of last verse - let caller decide what to do
+  return null;
 }
 
 /**
