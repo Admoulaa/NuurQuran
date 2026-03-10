@@ -606,7 +606,7 @@ export const TABS = [
   { id: "today", label: "Accueil", icon: "✨" },
   { id: "player", label: "Lecteur", icon: "🎧" },
   { id: "read", label: "Lecture", icon: "📖" },
-  { id: "plan", label: "Parcours", icon: "🌙" },
+  { id: "plan", label: "Invocations", icon: "🌙" },
   { id: "bookmarks", label: "Signets", icon: "🔖" },
   { id: "settings", label: "Paramètres", icon: "⚙️" },
 ];
