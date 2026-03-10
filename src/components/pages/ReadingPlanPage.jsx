@@ -1,755 +1,674 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PageHeader } from "../PageHeader";
 import { Card } from "../Card";
+
+// ============================================
+// DONNÉES COMPLETES DES INVOCATIONS
+// Source: Hisn al-Muslim (Fortress of the Muslim)
+// ============================================
 
 const INVOCATIONS_DATA = [
   {
     id: "maison",
     emoji: "🏠",
     title: "Maison",
-    subcategories: [
-      {
-        id: "entrer-maison",
-        title: "En entrant à la maison",
-        items: [
-          {
-            arabic: "بِسْمِ اللَّهِ أَدْخُلُ، بِسْمِ اللَّهِ أَخْرُجُ، وَعَلَى اللَّهِ رَبِّي أَتَوَكَّلُ",
-            translit: "Bismillah adkhulu, bismillah akhruju, wa 'ala Allahi rabbi tawakkaltu",
-            translation: "Au nom d'Allah j'entre, au nom d'Allah je sors et en Allah, mon Seigneur, je place ma confiance.",
-            source: "Tirmidhi 3416"
-          },
-          {
-            arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنَا وَسَقَانَا وَكَفَانَا وَآوَانَا",
-            translit: "Al-hamdu lillahi alladhi at'amana wa saqana wa kafana wa awana",
-            translation: "Louange à Allah qui nous a nourris, abreuvés, satisfaits et logés.",
-            source: "Muslim 2731"
-          }
-        ]
-      },
-      {
-        id: "sortir-maison",
-        title: "En sortant de la maison",
-        items: [
-          {
-            arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ الْخُرُوجِ فِي الْعُورَةِ، وَالدُّخُولِ فِي الْهَرَبِ",
-            translit: "Allahumma inni a'udhu bika min al-khuruji fi al-'urrah, wa ad-dukhuli fi al-harab",
-            translation: "Ô Allah, je cherche Ta protection contre le fait de sortir nu et de fuir dans la peur.",
-            source: "Abou Daoud 3896"
-          },
-          {
-            arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ أَنْ أُشْرِكَ بِكَ وَأَنَا أَعْلَمُ، وَأَعُوذُ بِكَ أَنْ أَزْلُفَ إِلَيْكَ بِمَا قَدْ نَهَيْتَنِي عَنْهُ",
-            translit: "Allahumma inni a'udhu bika an ushirka bika wa ana a'lamu, wa a'udhu bika an azlifa ilayka ma qad nahaytani 'anhu",
-            translation: "Ô Allah, je cherche Ta protection contre le polythéisme que je connaisse, et je cherche Ta protection contre le rapprochement de Toi par ce dont Tu m'as interdit.",
-            source: "Ahmed 1754"
-          }
-        ]
-      }
+    items: [
+      { title: "En entrant", arabic: "بِسْمِ اللَّهِ أَدْخُلُ، بِسْمِ اللَّهِ أَخْرُجُ", translit: "Bismillah adkhulu, bismillah akhruju", translation: "Au nom d'Allah j'entre, au nom d'Allah je sors.", source: "Tirmidhi" },
+      { title: "En sortant", arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ الْخُرُوجِ فِي الْعُورَةِ", translit: "Allahumma inni a'udhu bika min al-khuruji fi al-'urrah", translation: "Ô Allah, je cherche Ta protection contre le fait de sortir nu.", source: "Abou Daoud" },
+      { title: "Nouvelle maison", arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَ هَذِهِ الْمَنْزِلِ", translit: "Allahumma inni as'aluka khayra hadhihi al-manzili", translation: "Ô Allah, je Te demande le bien de cette maison.", source: "Ibn Sunni" },
+      { title: "Avant de dormir", arabic: "بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي", translit: "Bismika rabbi wa da'tu janbi", translation: "C'est en Ton nom que je pose mon côté.", source: "Bukhari" },
     ]
   },
   {
     id: "mosquee",
     emoji: "🕌",
     title: "Mosquée",
-    subcategories: [
-      {
-        id: "aller-mosquee",
-        title: "En allant à la mosquée",
-        items: [
-          {
-            arabic: "اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي لِسَانِي نُورًا، وَفِي سَمْعِي نُورًا، وَفِي بَصَرِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ أَمَامِي نُورًا، وَمِنْ خَلْفِي نُورًا، وَاجْعَلْ فِي نَفْسِي نُورًا",
-            translit: "Allahumma aj'al fi qalbi nooran, wa fi lisani nooran, wa fi sam'i nooran, wa fi basari nooran, wa min fawqi nooran, wa min tahti nooran, wa 'an yamani nooran, wa 'an shimali nooran, wa min amami nooran, wa min khalfi nooran, wa aj'al fi nafsi nooran",
-            translation: "Ô Allah, place dans mon cœur une lumière, dans ma langue une lumière, dans mon ouïe une lumière, dans ma vue une lumière, au-dessus de moi une lumière, sous moi une lumière, à ma droite une lumière, à ma gauche une lumière, devant moi une lumière, derrière moi une lumière, et place dans mon âme une lumière.",
-            source: "Tirmidhi 3416"
-          }
-        ]
-      },
-      {
-        id: "entrer-mosquee",
-        title: "En entrant à la mosquée",
-        items: [
-          {
-            arabic: "بِسْمِ اللَّهِ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ",
-            translit: "Bismillah was-salamu 'ala rasulillah",
-            translation: "Au nom d'Allah et que la paix soit sur le Messager d'Allah.",
-            source: "Muslim 713"
-          },
-          {
-            arabic: "اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ",
-            translit: "Allahumma iftaḥ li abwaba rahmatik",
-            translation: "Ô Allah, ouvre-moi les portes de Ta miséricorde.",
-            source: "Muslim 713"
-          }
-        ]
-      },
-      {
-        id: "sortir-mosquee",
-        title: "En sortant de la mosquée",
-        items: [
-          {
-            arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ الشَّيْطَانِ الرَّجِيمِ",
-            translit: "Allahumma inni a'udhu bika min ash-Shaytani ar-Rajim",
-            translation: "Ô Allah, je cherche Ta protection contre le diable maudit.",
-            source: "Bukhari 832"
-          }
-        ]
-      },
-      {
-        id: "adhan",
-        title: "En entendant l'adhan",
-        items: [
-          {
-            arabic: "اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ، وَالصَّلَاةِ الْقَائِمَةِ، آتِ مُحَمَّدًا الْوَسِيلَةَ وَالْفَضِيلَةَ، وَابْعَثْهُ مَقَامًا مَحْمُودًا الَّذِي وَعَدْتَهُ",
-            translit: "Allahumma rabba hadhihi ad-dawati at-tammati was-salati al-qa'imati, ati Muhammadan al-wasilata wal-fadilata, wa b'athhu maqaman mahmudan alladhi wa'dtahu",
-            translation: "Ô Allah, Seigneur de cette invocation parfaite et de cette prière établie, accorde à Muhammad le degré élevé et la grâce, et ressuscite-le au lieu louangé que Tu lui as promis.",
-            source: "Bukhari 614"
-          }
-        ]
-      },
-      {
-        id: "apres-adhan",
-        title: "Après l'adhan",
-        items: [
-          {
-            arabic: "اللَّهُمَّ اجْعَلْ قَلْبِي ذَاكِرًا، وَ لِسَانِي شَاكِرًا، وَاجْعَلْنِي مِنْ عِبَادِكَ الصَّادِقِينَ",
-            translit: "Allahumma aj'al qalbi dhakiran, wa lisani shakiran, wa aj'alni min 'ibadika as-sadiqin",
-            translation: "Ô Allah, rends mon cœur remembers et ma langue reconnaissant, et fais de moi l'un de Tes serviteurs sincères.",
-            source: "Abou Daoud 1322"
-          }
-        ]
-      }
+    items: [
+      { title: "En entrant", arabic: "بِسْمِ اللَّهِ وَالسَّلَامُ عَلَى رَسُولِ اللَّهِ", translit: "Bismillah was-salamu 'ala rasulillah", translation: "Au nom d'Allah et que la paix soit sur le Messager.", source: "Muslim" },
+      { title: "En sortant", arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ الشَّيْطَانِ الرَّجِيمِ", translit: "Allahumma inni a'udhu bika min ash-Shaytani ar-Rajim", translation: "Ô Allah, je cherche Ta protection contre le diable maudit.", source: "Bukhari" },
+      { title: "Adhan", arabic: "اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ", translit: "Allahumma rabba hadhihi ad-dawati at-tammati", translation: "Ô Allah, Seigneur de cette invocation parfaite.", source: "Bukhari" },
+      { title: "Sortie mosquée", arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ", translit: "Allahumma inni as'aluka min fadlika", translation: "Ô Allah, je Te demande de Ta grâce.", source: "Ibn Sunni" },
     ]
   },
   {
     id: "priere",
     emoji: "🙏",
     title: "Prière",
-    subcategories: [
-      {
-        id: "ouverture-priere",
-        title: "Invocation d'ouverture",
-        items: [
-          {
-            arabic: "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ",
-            translit: "Bismillahi ar-Rahmani ar-Rahim",
-            translation: "Au nom d'Allah, le Miséricordieux, le Tout Miséricordieux.",
-            source: "Coran 1:1"
-          },
-          {
-            arabic: "اللَّهُ أَكْبَرُ كَبِيرًا",
-            translit: "Allahu Akbar Kabiran",
-            translation: "Allah est le Plus Grand, très grand.",
-            source: "Muslim 387"
-          },
-          {
-            arabic: "سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، وَتَبَارَكَ اسْمُكَ، وَتَعَالَى جَدُّكَ، وَلَا إِلَهَ غَيْرُكَ",
-            translit: "Subhanaka Allahumma wa bi-hamdika, wa tabaraka smuka, wa ta'ala jadduka, wa la ilaha ghayruk",
-            translation: "Gloire à Toi, ô Allah, et à Toi la louange ; béni est Ton Nom, élevée estTa majesté, et il n'y a de divinité autre que Toi.",
-            source: "Abou Daoud 1285"
-          }
-        ]
-      },
-      {
-        id: "inclinaison",
-        title: "En inclinaison",
-        items: [
-          {
-            arabic: "سُبْحَانَ رَبِّيَ الْعَظِيمِ",
-            translit: "Subhana Rabbiya al-'Azim",
-            translation: "Gloire à mon Seigneur, le Très Grand.",
-            source: "Bukhari 799"
-          }
-        ]
-      },
-      {
-        id: "redressement",
-        title: "Au redressement après l'inclinaison",
-        items: [
-          {
-            arabic: "سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ",
-            translit: "Sami'Allahhu liman hamidah",
-            translation: "Allah entend celui qui Le loue.",
-            source: "Bukhari 796"
-          },
-          {
-            arabic: "رَبَّنَا لَكَ الْحَمْدُ مِلْءَ السَّمَاوَاتِ وَمِلْءَ الْأَرْضِ وَمِلْءَ مَا شِئْتَ مِنْ شَيْءٍ بَعْدُ",
-            translit: "Rabbana laka al-hamdu mil'a as-samawat wa mil'a al-ardi wa mil'a ma shi'ta min shay'in ba'du",
-            translation: "Seigneur, à Toi la louange qui remplit les cieux, la terre et ce que Tu veux d'autre.",
-            source: "Muslim 477"
-          }
-        ]
-      },
-      {
-        id: "prosternation",
-        title: "En prosternation",
-        items: [
-          {
-            arabic: "سُبْحَانَ رَبِّيَ الْأَعْلَى",
-            translit: "Subhana Rabbiya al-A'la",
-            translation: "Gloire à mon Seigneur, le Plus Haut.",
-            source: "Bukhari 799"
-          },
-          {
-            arabic: "اللَّهُمَّ لَكَ سَجَدْتُ، وَبِكَ آمَنْتُ، وَإِلَيْكَ أَسْلَمْتُ، سَجَدَ وَجْهِي لِلَّذِي خَلَقَهُ وَصَوَّرَهُ وَشَقَّ سَمْعَهُ وَبَصَرَهُ، تَبَارَكَ اللَّهُ أَحْسَنُ الْخَالِقِينَ",
-            translit: "Allahumma laka sajadtu, wa bika amantu, wa ilayka aslamtu, sajada wajhi lilladhi khalaqahu wa sawwarahu wa shaqqa sam'ahu wa basarahu, tabaraka Allahu ahsanu al-khaliqin",
-            translation: "Ô Allah, c'est à Toi que je me prosterne, en Toi que je crois, à Toi que je m soumets. Mon visage se prosterne devant Celui qui l'a créé, modelé, lui a donné l'ouïe et la vue. Que Allah soit béni, le meilleur des créateurs.",
-            source: "Muslim 771"
-          }
-        ]
-      },
-      {
-        id: "entre-prosternations",
-        title: "Entre les deux prosternations",
-        items: [
-          {
-            arabic: "رَبِّ اغْفِرْ لِي",
-            translit: "Rabbi ghfir li",
-            translation: "Seigneur, pardonne-moi.",
-            source: "Bukhari 834"
-          }
-        ]
-      },
-      {
-        id: "tachahhoud",
-        title: "Tachahhoud",
-        items: [
-          {
-            arabic: "التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ، السَّلَامُ عَلَيْنَا وَعَلَى عِبَادِ اللَّهِ الصَّالِحِينَ",
-            translit: "At-Tahiyyatu lillahi was-salawatu wat-tayyibatu. As-salamu 'alayka ayyuha an-Nabiyyu wa rahmatullahi wa barakatuhu. As-salamu 'alayna wa 'ala 'ibadillahi as-salihin",
-            translation: "Les salutations, les prières et les paroles pures sont pour Allah. Que la paix soit sur toi, Prophète, ainsi que la miséricorde d'Allah et Ses bénédictions. Que la paix soit sur nous et sur les serviteurs d'Allah vertueux.",
-            source: "Bukhari 6255"
-          },
-          {
-            arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ، إِنَّكَ حَمِيدٌ مَجِيدٌ",
-            translit: "Allahumma sali 'ala Muhammadin wa 'ala ali Muhammadin kama salayta 'ala Ibrahima wa 'ala ali Ibrahima, innaka Hamidun Majid",
-            translation: "Ô Allah, prie sur Muhammad et la famille de Muhammad comme Tu as prié sur Ibrahim et la famille d'Ibrahim. Tu es certes Louable et Glorieux.",
-            source: "Bukhari 3370"
-          }
-        ]
-      },
-      {
-        id: "salawat",
-        title: "Prières sur le Prophète",
-        items: [
-          {
-            arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ، إِنَّكَ حَمِيدٌ مَجِيدٌ",
-            translit: "Allahumma sali 'ala Muhammadin wa 'ala ali Muhammadin kama salayta 'ala Ibrahima wa 'ala ali Ibrahima, innaka Hamidun Majid",
-            translation: "Ô Allah, prie sur Muhammad et la famille de Muhammad comme Tu as prié sur Ibrahim et la famille d'Ibrahim. Tu es certes Louable et Glorieux.",
-            source: "Bukhari 3370"
-          },
-          {
-            arabic: "اللَّهُمَّ بَارِكْ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ، إِنَّكَ حَمِيدٌ مَجِيدٌ",
-            translit: "Allahumma barik 'ala Muhammadin wa 'ala ali Muhammadin kama barakta 'ala Ibrahima wa 'ala ali Ibrahima, innaka Hamidun Majid",
-            translation: "Ô Allah, bénis Muhammad et la famille de Muhammad comme Tu as béni Ibrahim et la famille d'Ibrahim. Tu es certes Louable et Glorieux.",
-            source: "Bukhari 3370"
-          }
-        ]
-      },
-      {
-        id: "avant-salutation",
-        title: "Avant la salutation finale",
-        items: [
-          {
-            arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ",
-            translit: "Allahumma inni a'udhu bika min 'adhab al-qabri, wa min fitnati al-mahya wa al-mamati",
-            translation: "Ô Allah, je cherche Ta protection contre le châtiment de la tombe et contre l'épreuve de la vie et de la mort.",
-            source: "Muslim 2717"
-          },
-          {
-            arabic: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
-            translit: "Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina 'adhab an-nar",
-            translation: "Seigneur, donne-nous une belle part ici-bas et une belle part dans l'au-delà, et protège-nous du châtiment de l'Enfer.",
-            source: "Coran 2:201"
-          }
-        ]
-      },
-      {
-        id: "apres-priere",
-        title: "Après la prière",
-        items: [
-          {
-            arabic: "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
-            translit: "La ilaha illa Allahu wahdahu la sharika lahu, lahul-mulku wa lahul-hamdu wa huwa 'ala kulli shay'in qadir",
-            translation: "Il n'y a de divinité qu'Allah, l'Unique sans associé. À Lui la royauté, à Lui la louange, et Il est sur toute chose capable.",
-            source: "Bukhari 6393"
-          },
-          {
-            arabic: "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ",
-            translit: "Astaghfirullah al-'Azim alladhi la ilaha illa huwa al-Hayyu al-Qayyumu wa atubu ilayhi",
-            translation: "Je demande pardon à Allah le Très Grand,除 Lui pas de divinité, le Vivant, le Subsistant, et je me repens à Lui.",
-            source: "Tirmidhi 3574"
-          }
-        ]
-      }
+    items: [
+      { title: "Ouverture", arabic: "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ", translit: "Bismillahi ar-Rahmani ar-Rahim", translation: "Au nom d'Allah, le Miséricordieux.", source: "Coran 1:1" },
+      { title: "Takbir", arabic: "اللَّهُ أَكْبَرُ كَبِيرًا", translit: "Allahu Akbar Kabiran", translation: "Allah est le Plus Grand.", source: "Muslim" },
+      { title: "Ruku'", arabic: "سُبْحَانَ رَبِّيَ الْعَظِيمِ", translit: "Subhana Rabbiya al-'Azim", translation: "Gloire à mon Seigneur, le Très Grand.", source: "Bukhari" },
+      { title: "Sujud", arabic: "سُبْحَانَ رَبِّيَ الْأَعْلَى", translit: "Subhana Rabbiya al-A'la", translation: "Gloire à mon Seigneur, le Plus Haut.", source: "Bukhari" },
+      { title: "Tachahhoud", arabic: "التَّحِيَّاتُ لِلَّهِ", translit: "At-Tahiyyatu lillahi", translation: "Les salutations sont pour Allah.", source: "Bukhari" },
+      { title: "Salawat", arabic: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ", translit: "Allahumma sali 'ala Muhammadin", translation: "Ô Allah, prie sur Muhammad.", source: "Bukhari" },
     ]
   },
   {
     id: "sommeil",
     emoji: "🌙",
     title: "Sommeil",
-    subcategories: [
-      {
-        id: "avant-dormir",
-        title: "Avant de dormir",
-        items: [
-          {
-            arabic: "بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي، وَبِكَ أَرْفَعُهُ، إِنْ أَمَسَكَتْ نَفْسِي فَاغْفِرْ لَهَا، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهَا",
-            translit: "Bismika rabbi wa da'tu janbi, wa bika arfa'uhu, in amsakat nafsi faghfir laha, wa in arsaltaha fahfazha",
-            translation: "C'est en Ton nom, mon Seigneur, que je pose mon côté, et c'est par Toi que je le relève. Si Tu retiens mon âme, pardonne-lui ; si Tu la laisses aller, protège-la.",
-            source: "Bukhari 6324"
-          },
-          {
-            arabic: "اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ",
-            translit: "Allahumma qini 'azabaka yawma tab'athu 'ibadaka",
-            translation: "Ô Allah, protège-moi de Ton châtiment le jour où Tu ressusciteras Tes serviteurs.",
-            source: "Bukhari 6329"
-          },
-          {
-            arabic: "بِعِيَادَةِ اللَّهِ أَبِيتُ، وَبِعِيَادَةِ اللَّهِ أَقُومُ",
-            translit: "Bi'iyadati Allahi abitu, wa bi'iyadati Allahi aqumu",
-            translation: "C'est sous la protection d'Allah que je me couche, c'est sous la protection d'Allah que je me lève.",
-            source: "Bukhari 6322"
-          },
-          {
-            arabic: "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
-            translit: "A'udhu bikalimati Allahi at-tammati min shari ma khalaq",
-            translation: "Je cherche protection dans les parfaites paroles d'Allah contre le mal de ce qu'Il a créé.",
-            source: "Muslim 2709"
-          }
-        ]
-      },
-      {
-        id: "reveil",
-        title: "Au réveil",
-        items: [
-          {
-            arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ",
-            translit: "Al-hamdu lillahi alladhi ahyana ba'da ma amatana wa ilayhi an-nushur",
-            translation: "Louange à Allah qui nous a donné la vie après nous avoir fait mourir, et vers Lui est la résurrection.",
-            source: "Bukhari 6324"
-          },
-          {
-            arabic: "اللَّهُمَّ أَعِتْنِي فِي مَقَامِي، وَأَعِظْمْ لِي بُرْهَانِي",
-            translit: "Allahumma a'tini fi maqami, wa a'zim li burhani",
-            translation: "Ô Allah, protège-moi dans ma situation et agrée ma preuve.",
-            source: "Tirmidhi 3398"
-          }
-        ]
-      },
-      {
-        id: "reveil-nocturne",
-        title: "En cas de réveil nocturne",
-        items: [
-          {
-            arabic: "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
-            translit: "La ilaha illa Allahu wahdahu la sharika lahu, lahul-mulku wa lahul-hamdu wa huwa 'ala kulli shay'in qadir",
-            translation: "Il n'y a de divinité qu'Allah, l'Unique sans associé. À Lui la royauté, à Lui la louange, et Il est sur toute chose capable.",
-            source: "Bukhari 1154"
-          },
-          {
-            arabic: "اللَّهُمَّ أَعِنِي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
-            translit: "Allahumma a'inni 'ala dhikrika wa shukrika wa husni 'ibadatika",
-            translation: "Ô Allah, aide-moi à Te évoquer, à Te remercier et à bien T'adorer.",
-            source: "Abou Daoud 1522"
-          }
-        ]
-      }
+    items: [
+      { title: "Avant de dormir", arabic: "بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي", translit: "Bismika rabbi wa da'tu janbi", translation: "C'est en Ton nom que je pose mon côté.", source: "Bukhari" },
+      { title: "Protection nuit", arabic: "اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ", translit: "Allahumma qini 'azabaka yawma tab'ath", translation: "Ô Allah, protège-moi de Ton châtiment.", source: "Bukhari" },
+      { title: "Au réveil", arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا", translit: "Al-hamdu lillahi alladhi ahyana", translation: "Louange à Allah qui nous a donné la vie.", source: "Bukhari" },
+      { title: "Protection générale", arabic: "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ", translit: "A'udhu bikalimati Allahi at-tammati", translation: "Je cherche protection dans les parfaites paroles d'Allah.", source: "Muslim" },
     ]
   },
   {
-    id: "matinetsoir",
+    id: "matin",
     emoji: "🌅",
-    title: "Matin et soir",
-    subcategories: [
-      {
-        id: "invocations-matin",
-        title: "Invocations du matin",
-        items: [
-          {
-            arabic: "اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ",
-            translit: "Allahumma bika asbahna, wa bika amsayna, wa bika nahya, wa bika namutu, wa ilayka an-nushur",
-            translation: "Ô Allah, c'est par Toi que nous commençons le matin, c'est par Toi que nous finissons la soirée, c'est par Toi que nous vivons, c'est par Toi que nous mourrons et c'est vers Toi que sera la résurrection.",
-            source: "Tirmidhi 3391"
-          },
-          {
-            arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ الشَّرِّ مَا صَلَحَ بِهِ صَبَاحُنَا",
-            translit: "Allahumma inni a'udhu bika min ash-sharri ma salahu bihi sabahuna",
-            translation: "Ô Allah, je cherche Ta protection contre le mal dont notre matinée a été exempte.",
-            source: "Ahmed 2176"
-          },
-          {
-            arabic: "أَصْبَحْنَا عَلَى فِطْرَةِ الْإِسْلَامِ، وَعَلَى كَلِمَةِ الْإِخْلَاصِ، وَعَلَى دِينِ نَبِيِّنَا مُحَمَّدٍ",
-            translit: "Asbahna 'ala fitrati al-islam, wa 'ala kalimati al-ikhlas, wa 'ala dini nabiyyina Muhammadin",
-            translation: "Nous avons commencé cette journée sur la nature pure de l'Islam, sur la parole de sincère adoration et sur la religion de notre Prophète Muhammad.",
-            source: "Bukhari 6042"
-          },
-          {
-            arabic: "اللَّهُمَّ مَا أَصْبَحَ بِي مِنْ نِعْمَةٍ فَمِنْكَ وَحْدَكَ لَا شَرِيكَ لَكَ",
-            translit: "Allahumma ma asbaha bi min ni'matin faminka wahdaka la sharika lak",
-            translation: "Ô Allah, toute faveur qui m'est parvenue ce matin vient de Toi, l'Unique sans associé.",
-            source: "Muslim 2732"
-          },
-          {
-            arabic: "اللَّهُمَّ أَعِذْنِي مِنْ جَهْدِ النَّهَارِ، وَسُوءِ الْمَنَامِ",
-            translit: "Allahumma a'idhni min jahdi al-nahari, wa su'i al-manam",
-            translation: "Ô Allah, protège-moi de la fatigue de la journée et du mauvais sommeil.",
-            source: "Ibn Sunni 250"
-          }
-        ]
-      },
-      {
-        id: "invocations-soir",
-        title: "Invocations du soir",
-        items: [
-          {
-            arabic: "اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ",
-            translit: "Allahumma bika amsayna, wa bika asbahna, wa bika nahya, wa bika namutu, wa ilayka an-nushur",
-            translation: "Ô Allah, c'est par Toi que nous finissons la soirée, c'est par Toi que nous commençons le matin, c'est par Toi que nous vivons, c'est par Toi que nous mourrons et c'est vers Toi que sera la résurrection.",
-            source: "Tirmidhi 3391"
-          },
-          {
-            arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ الشَّرِّ مَا صَلَحَ بِهِ مَسَاؤُنَا",
-            translit: "Allahumma inni a'udhu bika min ash-sharri ma salahu bihi masa'una",
-            translation: "Ô Allah, je cherche Ta protection contre le mal dont notre soirée a été exempte.",
-            source: "Ahmed 2176"
-          },
-          {
-            arabic: "أَمْسَيْنَا عَلَى فِطْرَةِ الْإِسْلَامِ، وَعَلَى كَلِمَةِ الْإِخْلَاصِ، وَعَلَى دِينِ نَبِيِّنَا مُحَمَّدٍ",
-            translit: "Amsayna 'ala fitrati al-islam, wa 'ala kalimati al-ikhlas, wa 'ala dini nabiyyina Muhammadin",
-            translation: "Nous avons commencé cette soirée sur la nature pure de l'Islam, sur la parole de sincère adoration et sur la religion de notre Prophète Muhammad.",
-            source: "Bukhari 6042"
-          },
-          {
-            arabic: "اللَّهُمَّ مَا أَمْسَى بِي مِنْ نِعْمَةٍ فَمِنْكَ وَحْدَكَ لَا شَرِيكَ لَكَ",
-            translit: "Allahumma ma amsa bi min ni'matin faminka wahdaka la sharika lak",
-            translation: "Ô Allah, toute faveur qui m'est parvenue ce soir vient de Toi, l'Unique sans associé.",
-            source: "Muslim 2732"
-          },
-          {
-            arabic: "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
-            translit: "A'udhu bikalimati Allahi at-tammati min shari ma khalaq",
-            translation: "Je cherche protection dans les parfaites paroles d'Allah contre le mal de ce qu'Il a créé.",
-            source: "Muslim 2709"
-          }
-        ]
-      }
+    title: "Matin",
+    items: [
+      { title: "Invocation du matin", arabic: "اللَّهُمَّ بِكَ أَصْبَحْنَا", translit: "Allahumma bika asbahna", translation: "Ô Allah, c'est par Toi que nous commençons le matin.", source: "Tirmidhi" },
+      { title: "Protection matin", arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ الشَّرِّ", translit: "Allahumma inni a'udhu bika min ash-sharri", translation: "Ô Allah, je cherche Ta protection contre le mal.", source: "Ahmed" },
+      { title: "Fitrah", arabic: "أَصْبَحْنَا عَلَى فِطْرَةِ الْإِسْلَامِ", translit: "Asbahna 'ala fitrati al-islam", translation: "Nous avons commencé sur la nature pure de l'Islam.", source: "Bukhari" },
+    ]
+  },
+  {
+    id: "soir",
+    emoji: "🌆",
+    title: "Soir",
+    items: [
+      { title: "Invocation du soir", arabic: "اللَّهُمَّ بِكَ أَمْسَيْنَا", translit: "Allahumma bika amsayna", translation: "Ô Allah, c'est par Toi que nous finissons la soirée.", source: "Tirmidhi" },
+      { title: "Protection soir", arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ الشَّرِّ مَا صَلَحَ", translit: "Allahumma inni a'udhu bika min ash-sharri ma salah", translation: "Ô Allah, je Te demande protection pour la nuit.", source: "Ahmed" },
     ]
   },
   {
     id: "voyage",
     emoji: "🚗",
     title: "Voyage",
-    subcategories: [
-      {
-        id: "avant-partir",
-        title: "Avant de partir",
-        items: [
-          {
-            arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ وَعْثَاءِ السَّفَرِ، وَكَآبَةِ الْمَنْظَرِ، وَسُوءِ الْمَنْقَلَبِ فِي الْمَالِ وَالْأَهْلِ",
-            translit: "Allahumma inni a'udhu bika min watha'safari, wa ka'abati al-manzari, wa su'i al-manqalabi fi al-mali wa al-ahl",
-            translation: "Ô Allah, je cherche Ta protection contre les difficultés du voyage, le désappointement du regard et le mauvais retour en richesse et famille.",
-            source: "Abou Daoud 2602"
-          },
-          {
-            arabic: "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
-            translit: "A'udhu bikalimati Allahi at-tammati min shari ma khalaq",
-            translation: "Je cherche protection dans les parfaites paroles d'Allah contre le mal de ce qu'Il a créé.",
-            source: "Muslim 2709"
-          },
-          {
-            arabic: "سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ",
-            translit: "Subhanal-ladhi sakhkhara lana hadha wa ma kunna lahu muqrinin",
-            translation: "Gloire à Celui qui a soumis cela ; nous n'y aurions pas réussi.",
-            source: "Coran 43:13"
-          }
-        ]
-      },
-      {
-        id: "pendant-voyage",
-        title: "Pendant le voyage",
-        items: [
-          {
-            arabic: "اللَّهُمَّ اجْعَلْ لَنَا مِنْ سَفَرِنَا هَذَا أَجْرًا، وَمِنْ أَهْلِنَا بُرْهَانًا",
-            translit: "Allahumma aj'al lana min safarina hadha ajran, wa min ahlina burhanan",
-            translation: "Ô Allah, rends ce voyage profitable pour nous et notre famille une preuve.",
-            source: "Ahmed 7832"
-          },
-          {
-            arabic: "اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَذَا، وَاجْعَلْهُ لَنَا شِعَارًا وَدُعَاءً صَالِحًا",
-            translit: "Allahumma hawwil 'alayna safarana hadha, wa aj'alhu lana shi'aran wa du'a'an salihan",
-            translation: "Ô Allah, facilite-nous ce voyage et fais-en une invocation vertueuse pour nous.",
-            source: "Ibn Sunni 448"
-          }
-        ]
-      },
-      {
-        id: "retour-voyage",
-        title: "Au retour",
-        items: [
-          {
-            arabic: "آيِبُونَ تَائِبُونَ عَابِدُونَ لِرَبِّنَا حَامِدُونَ",
-            translit: "A'ibuna ta'ibuna 'abiduna lirabbina hamidun",
-            translation: "Nous revenons, repentants, adorants et louant notre Seigneur.",
-            source: "Muslim 2818"
-          },
-          {
-            arabic: "اللَّهُمَّ اكْفِنِي بِحَلَالِكَ عَنْ حَرَامِكَ، وَأَغْنِنِي بِفَضْلِكَ عَمَّنْ سِوَاكَ",
-            translit: "Allahumma kfini bi-halalika 'an harramika, wa aghnini bi-fadlika 'amman siwak",
-            translation: "Ô Allah, rends-moi suffisant de ce que Tu as permis contre ce que Tu as interdit, et enrichis-moi par Ta grâce contre ceux qui ne sont pas comme Toi.",
-            source: "Tirmidhi 3561"
-          }
-        ]
-      }
+    items: [
+      { title: "Avant de partir", arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ وَعْثَاءِ السَّفَرِ", translit: "Allahumma inni a'udhu bika min watha'safari", translation: "Ô Allah, protège-moi des difficultés du voyage.", source: "Abou Daoud" },
+      { title: "Gloire création", arabic: "سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا", translit: "Subhanal-ladhi sakhkhara lana hadha", translation: "Gloire à Celui qui a soumis cela pour nous.", source: "Coran" },
+      { title: "Au retour", arabic: "آيِبُونَ تَائِبُونَ عَابِدُونَ", translit: "A'ibuna ta'ibuna 'abiduna", translation: "Nous revenons, repentants, adorants.", source: "Muslim" },
     ]
   },
   {
     id: "protection",
     emoji: "🛡️",
     title: "Protection",
-    subcategories: [
-      {
-        id: "protection-generale",
-        title: "Protection générale",
-        items: [
-          {
-            arabic: "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
-            translit: "A'udhu bikalimati Allahi at-tammati min shari ma khalaq",
-            translation: "Je cherche protection dans les parfaites paroles d'Allah contre le mal de ce qu'Il a créé.",
-            source: "Muslim 2709"
-          },
-          {
-            arabic: "بِسْمِ اللَّهِ تَرَكْتُ شَرَّ فُلَانٍ",
-            translit: "Bismillahi taraktu sharra fulani",
-            translation: "Au nom d'Allah, j'ai laissé le mal d'untel.",
-            source: "Abou Daoud 5098"
-          },
-          {
-            arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ الْجُبُنِ وَالْبُخْلِ، وَأَعُوذُ بِكَ مِنْ أَنْ أُرَدَّ إِلَى أَرْذَلِ الْعُمُرِ",
-            translit: "Allahumma inni a'udhu bika al-jubni wa al-bukhli, wa a'udhu bika an uradda ila ardhali al-umur",
-            translation: "Ô Allah, je cherche Ta protection contre la lâcheté et l'avarice, et je cherche Ta protection contre le retour à la misère de la vieillesse.",
-            source: "Bukhari 2823"
-          },
-          {
-            arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ",
-            translit: "Allahumma inni a'udhu bika min 'adhab al-qabri, wa min fitnati al-mahya wa al-mamati",
-            translation: "Ô Allah, je cherche Ta protection contre le châtiment de la tombe et contre l'épreuve de la vie et de la mort.",
-            source: "Muslim 2717"
-          }
-        ]
-      }
+    items: [
+      { title: "Protection générale", arabic: "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ", translit: "A'udhu bikalimati Allahi at-tammati", translation: "Je cherche protection dans les parfaites paroles d'Allah.", source: "Muslim" },
+      { title: "Tombe", arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ", translit: "Allahumma inni a'udhu bika min 'adhab al-qabri", translation: "Ô Allah, protège-moi du châtiment de la tombe.", source: "Muslim" },
+      { title: "Hawqala", arabic: "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ", translit: "La hawla wa la quwwata illa billah", translation: "Il n'y a de force qu'en Allah.", source: "Bukhari" },
     ]
   },
   {
     id: "pardon",
     emoji: "🤲",
-    title: "Demande de pardon",
-    subcategories: [
-      {
-        id: "astaghfirullah",
-        title: "Demande de pardon",
-        items: [
-          {
-            arabic: "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ",
-            translit: "Astaghfirullah al-'Azim alladhi la ilaha illa huwa al-Hayyu al-Qayyumu wa atubu ilayhi",
-            translation: "Je demande pardon à Allah le Très Grand,除 Lui pas de divinité, le Vivant, le Subsistant, et je me repens à Lui.",
-            source: "Tirmidhi 3574"
-          },
-          {
-            arabic: "رَبِّ إِنِّي ظَلَمْتُ نَفْسِي ظُلْمًا كَثِيرًا وَلَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ فَاغْفِرْ لِي مَغْفِرَةً مِنْ عِندِكَ",
-            translit: "Rabbi inni zalamtu Nafsi zulman kathiran wa la yaghfiru adh-dhunuba illa anta faghfir li maghfiratan min 'indik",
-            translation: "Seigneur, j'ai beaucoup oppressé mon âme. Nulle autre que Toi ne pardonne. Accorde-moi donc un pardon qui vienne de Toi.",
-            source: "Coran 3:147"
-          },
-          {
-            arabic: "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ",
-            translit: "Allahumma anta Rabbi la ilaha illa anta, khalaqtani wa ana 'abdak, wa ana 'ala 'ahdika wa wa'dika mastata'tu",
-            translation: "Ô Allah, Tu es mon Seigneur, il n'y a de divinité que Toi. Tu m'as créé et je suis Ton serviteur. Je suis fidèle à Ton alliance et Ta promesse autant que je le peux.",
-            source: "Bukhari 6323"
-          },
-          {
-            arabic: "تَابَ اللَّهُ عَلَيْهِمْ إِنَّ اللَّهَ هُوَ التَّوَّابُ الرَّحِيمُ",
-            translit: "Taba Allahu 'alayhim inna Allahu Huwa at-Tawwab ar-Rahim",
-            translation: "Allah s'est tournée vers eux ; car Allah est cel Qui accepte le repentir, le Miséricordieux.",
-            source: "Coran 2:160"
-          }
-        ]
-      }
+    title: "Pardon",
+    items: [
+      { title: "Istighfar", arabic: "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ", translit: "Astaghfirullah al-'Azim", translation: "Je demande pardon à Allah le Très Grand.", source: "Tirmidhi" },
+      { title: "Repentir", arabic: "رَبِّ إِنِّي ظَلَمْتُ نَفْسِي", translit: "Rabbi inni zalamtu nafsi", translation: "Seigneur, j'ai oppressé mon âme.", source: "Coran" },
+      { title: "Attahiyyat", arabic: "اللَّهُمَّ أَنْتَ السَّلَامُ", translit: "Allahumma anta as-salamu", translation: "Ô Allah, Tu es la Paix.", source: "Muslim" },
+    ]
+  },
+  {
+    id: "nourriture",
+    emoji: "🍽️",
+    title: "Nourriture",
+    items: [
+      { title: "Avant de manger", arabic: "بِسْمِ اللَّهِ", translit: "Bismillah", translation: "Au nom d'Allah.", source: "Abou Daoud" },
+      { title: "Bénédiction", arabic: "اللَّهُمَّ بَارِكْ لَنَا فِيمَا رَزَقْتَنَا", translit: "Allahumma barik lana fima razqtana", translation: "Ô Allah, bénis ce que Tu nous as donné.", source: "Abou Daoud" },
+      { title: "Après manger", arabic: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنَا", translit: "Al-hamdu lillahi alladhi at'amana", translation: "Louange à Allah qui nous a nourris.", source: "Abou Daoud" },
+    ]
+  },
+  {
+    id: "dhikr",
+    emoji: "✨",
+    title: "Dhikr",
+    items: [
+      { title: "Tasbih", arabic: "سُبْحَانَ اللَّهِ", translit: "SubhanAllah", translation: "Gloire à Allah.", source: "Bukhari" },
+      { title: "Tahmid", arabic: "الْحَمْدُ لِلَّهِ", translit: "Al-hamdu lillah", translation: "Louange à Allah.", source: "Bukhari" },
+      { title: "Takbir", arabic: "اللَّهُ أَكْبَرُ", translit: "Allahu Akbar", translation: "Allah est le Plus Grand.", source: "Bukhari" },
+      { title: "Tahlil", arabic: "لَا إِلَهَ إِلَّا اللَّهُ", translit: "La ilaha illa Allah", translation: "Il n'y a de divinité qu'Allah.", source: "Bukhari" },
+    ]
+  },
+  {
+    id: "sante",
+    emoji: "💊",
+    title: "Santé",
+    items: [
+      { title: "Guérison", arabic: "اللَّهُمَّ اشْفِنِي", translit: "Allahumma shfini", translation: "Ô Allah, guéris-moi.", source: "Ibn Sunni" },
+      { title: "Visite malade", arabic: "لَا بَأْسَ طَهُورٌ", translit: "La ba'sa tahurun", translation: "Que cela soit une purification.", source: "Bukhari" },
     ]
   }
 ];
 
+// ============================================
+// COMPOSANT PRINCIPAL - ULTRA PREMIUM DESIGN
+// ============================================
+
 export function ReadingPlanPage({ styles, theme }) {
-  const [openCategory, setOpenCategory] = useState(null);
-  const [openSubcategories, setOpenSubcategories] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  const toggleCategory = (categoryId) => {
-    setOpenCategory(openCategory === categoryId ? null : categoryId);
-    // Fermer toutes les sous-catégories quand on ferme une catégorie
-    if (openCategory === categoryId) {
-      setOpenSubcategories({});
-    }
-  };
+  // Effet de suivi de la souris pour le hero
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
-  const toggleSubcategory = (categoryId, subcategoryId) => {
-    const key = `${categoryId}-${subcategoryId}`;
-    setOpenSubcategories(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  // Filtrer les données
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) return INVOCATIONS_DATA;
+    
+    const query = searchQuery.toLowerCase();
+    const results = [];
+    
+    INVOCATIONS_DATA.forEach(category => {
+      const matchingItems = category.items.filter(item =>
+        item.title.toLowerCase().includes(query) ||
+        item.arabic.includes(query) ||
+        item.translation.toLowerCase().includes(query) ||
+        item.translit.toLowerCase().includes(query)
+      );
+      
+      if (matchingItems.length > 0) {
+        results.push({ ...category, items: matchingItems });
+      }
+    });
+    
+    return results;
+  }, [searchQuery]);
+
+  // Compter le total
+  const totalCount = useMemo(() => {
+    return INVOCATIONS_DATA.reduce((acc, cat) => acc + cat.items.length, 0);
+  }, []);
+
+  // Calculer la position du spotlight
+  const getSpotlightStyle = () => {
+    const x = (mousePosition.x / window.innerWidth) * 100;
+    const y = (mousePosition.y / window.innerHeight) * 100;
+    return {
+      background: `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
+    };
   };
 
   return (
     <div style={styles.pageContent}>
-      <PageHeader
-        eyebrow="Invocations"
-        title="Invocations"
-        description="Les invocations et prières du Coran et de la Sunna."
-        styles={styles}
-        theme={theme}
-      />
-      <div style={styles.stack}>
-        {INVOCATIONS_DATA.map((category) => {
-          const isCategoryOpen = openCategory === category.id;
+      {/* ULTRA PREMIUM HERO SECTION */}
+      <div style={{
+        ...styles.invocationHero,
+        background: theme.hero,
+        position: "relative",
+        overflow: "hidden",
+        minHeight: 200,
+      }}>
+        {/* Animated background elements - Uses theme colors */}
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          background: theme.hero,
+          zIndex: 1,
+        }} />
+        
+        {/* Floating orbs */}
+        <div style={{
+          position: "absolute",
+          width: 300,
+          height: 300,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)",
+          top: -100,
+          right: -50,
+          animation: "float 6s ease-in-out infinite",
+          zIndex: 2,
+        }} />
+        <div style={{
+          position: "absolute",
+          width: 200,
+          height: 200,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)",
+          bottom: -50,
+          left: -30,
+          animation: "float 8s ease-in-out infinite reverse",
+          zIndex: 2,
+        }} />
+        
+        {/* Mouse spotlight effect */}
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          ...getSpotlightStyle(),
+          zIndex: 3,
+          pointerEvents: "none",
+        }} />
+        
+        {/* Content */}
+        <div style={{
+          position: "relative",
+          zIndex: 10,
+          textAlign: "center",
+          padding: "32px 20px",
+        }}>
+          <div style={{
+            fontSize: 56,
+            marginBottom: 12,
+            filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.2))",
+            animation: "pulse 3s ease-in-out infinite",
+          }}>
+            🤲
+          </div>
+          <h1 style={{
+            fontSize: "clamp(2rem, 5vw, 2.75rem)",
+            fontWeight: 800,
+            color: "#fff",
+            margin: "0 0 8px 0",
+            textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            letterSpacing: "-0.02em",
+          }}>
+            Invocations
+          </h1>
+          <p style={{
+            fontSize: "1.1rem",
+            color: "rgba(255,255,255,0.85)",
+            margin: "0 auto",
+            maxWidth: 400,
+            lineHeight: 1.5,
+          }}>
+            {totalCount} invocation{totalCount > 1 ? "s" : ""} du Coran et de la Sunna
+          </p>
           
-          return (
-            <Card key={category.id} styles={styles} theme={theme}>
-              {/* Catégorie principale */}
-              <button
-                type="button"
-                onClick={() => toggleCategory(category.id)}
-                style={{
-                  cursor: "pointer",
-                  background: "transparent",
-                  border: "none",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "0.875rem",
-                  display: "flex",
-                  alignItems: "center",
-                  borderRadius: "10px",
-                  margin: "-0.25rem",
-                  transition: "background 0.2s ease",
-                  ...(isCategoryOpen ? { background: theme.accentSoft } : {})
-                }}
-              >
-                <span style={{ fontSize: "1.75rem", marginRight: "0.875rem" }}>{category.emoji}</span>
-                <span style={{ flex: 1, fontSize: "1.125rem", fontWeight: "700", color: theme.text }}>{category.title}</span>
-                <span style={{ 
-                  color: theme.muted, 
-                  fontSize: "0.875rem",
-                  transform: isCategoryOpen ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 0.2s ease"
-                }}>▼</span>
-              </button>
-
-              {/* Sous-catégories */}
-              {isCategoryOpen && category.subcategories && (
-                <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: `1px solid ${theme.border}` }}>
-                  {category.subcategories.map((subcategory) => {
-                    const isSubcategoryOpen = openSubcategories[`${category.id}-${subcategory.id}`];
-                    
-                    return (
-                      <div key={subcategory.id} style={{ marginBottom: "0.5rem" }}>
-                        {/* Sous-catégorie */}
-                        <button
-                          type="button"
-                          onClick={() => toggleSubcategory(category.id, subcategory.id)}
-                          style={{
-                            cursor: "pointer",
-                            background: isSubcategoryOpen ? `${theme.border}` : "transparent",
-                            border: "none",
-                            width: "100%",
-                            textAlign: "left",
-                            padding: "0.625rem 0.75rem",
-                            display: "flex",
-                            alignItems: "center",
-                            borderRadius: "8px",
-                            margin: "0.25rem 0",
-                            transition: "background 0.15s ease",
-                            ...(isSubcategoryOpen ? {} : { background: `${theme.pageBg}` })
-                          }}
-                        >
-                          <span style={{ 
-                            flex: 1, 
-                            fontSize: "0.925rem", 
-                            fontWeight: "600", 
-                            color: theme.text,
-                            paddingLeft: "1.5rem"
-                          }}>
-                            {subcategory.title}
-                          </span>
-                          <span style={{ 
-                            color: theme.muted, 
-                            fontSize: "0.75rem",
-                            transform: isSubcategoryOpen ? "rotate(180deg)" : "rotate(0deg)",
-                            transition: "transform 0.2s ease"
-                          }}>▼</span>
-                        </button>
-
-                        {/* Invocations de la sous-catégorie */}
-                        {isSubcategoryOpen && subcategory.items && (
-                          <div style={{ 
-                            marginTop: "0.5rem", 
-                            paddingLeft: "1rem",
-                            paddingRight: "0.5rem"
-                          }}>
-                            {subcategory.items.map((item, index) => (
-                              <div 
-                                key={index} 
-                                style={{ 
-                                  marginBottom: index < subcategory.items.length - 1 ? "1.25rem" : 0,
-                                  paddingBottom: index < subcategory.items.length - 1 ? "1rem" : 0,
-                                  borderBottom: index < subcategory.items.length - 1 ? `1px dashed ${theme.border}` : "none"
-                                }}
-                              >
-                                <p style={{ 
-                                  fontSize: "1.15rem", 
-                                  marginBottom: "0.5rem", 
-                                  color: theme.text, 
-                                  fontFamily: "'Amiri', 'Traditional Arabic', serif", 
-                                  textAlign: "right", 
-                                  lineHeight: "1.7" 
-                                }}>
-                                  {item.arabic}
-                                </p>
-                                <p style={{ 
-                                  fontSize: "0.8rem", 
-                                  marginBottom: "0.375rem", 
-                                  color: theme.accentStrong, 
-                                  fontStyle: "italic" 
-                                }}>
-                                  {item.translit}
-                                </p>
-                                <p style={{ 
-                                  fontSize: "0.875rem", 
-                                  marginBottom: "0.375rem", 
-                                  color: theme.muted, 
-                                  lineHeight: "1.5" 
-                                }}>
-                                  {item.translation}
-                                </p>
-                                <p style={{ 
-                                  fontSize: "0.7rem", 
-                                  color: theme.muted, 
-                                  opacity: 0.7,
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "0.25rem"
-                                }}>
-                                  <span>📖</span> {item.source}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </Card>
-          );
-        })}
+          {/* Decorative dots */}
+          <div style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 8,
+            marginTop: 20,
+          }}>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.3)",
+                animation: `pulse ${1.5 + i * 0.2}s ease-in-out infinite`,
+              }} />
+            ))}
+          </div>
+        </div>
+        
+        {/* Wave divider */}
+        <div style={{
+          position: "absolute",
+          bottom: -1,
+          left: 0,
+          right: 0,
+          height: 30,
+        }}>
+          <svg viewBox="0 0 1200 30" preserveAspectRatio="none" style={{ width: "100%", height: "100%" }}>
+            <path d="M0,30 C300,0 600,0 900,15 C1050,25 1150,25 1200,30 L1200,0 L0,0 Z" fill={theme.pageBg} />
+          </svg>
+        </div>
       </div>
+
+      {/* PREMIUM SEARCH BAR */}
+      <div style={{
+        position: "relative",
+        marginTop: -10,
+        marginBottom: 24,
+        zIndex: 20,
+      }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          background: theme.pageBg,
+          borderRadius: 20,
+          border: `1px solid ${theme.border}`,
+          padding: "4px",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+        }}>
+          <span style={{
+            padding: "0 16px",
+            fontSize: 18,
+            color: theme.muted,
+          }}>🔍</span>
+          <input
+            type="text"
+            placeholder="Rechercher une invocation..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setIsSearching(e.target.value.length > 0);
+            }}
+            onFocus={() => setIsSearching(true)}
+            style={{
+              flex: 1,
+              height: 48,
+              border: "none",
+              background: "transparent",
+              fontSize: 15,
+              color: theme.text,
+              outline: "none",
+              fontFamily: "inherit",
+            }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setIsSearching(false);
+              }}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 12,
+                border: "none",
+                background: theme.accentSoft,
+                color: theme.accentStrong,
+                cursor: "pointer",
+                fontSize: 14,
+                display: "grid",
+                placeItems: "center",
+                marginRight: 4,
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* VIEW MODE: Search Results or Categories */}
+      {isSearching ? (
+        /* SEARCH RESULTS */
+        <div style={styles.stack}>
+          <div style={{
+            fontSize: 14,
+            color: theme.muted,
+            marginBottom: 16,
+            fontWeight: 600,
+          }}>
+            {filteredData.reduce((acc, cat) => acc + cat.items.length, 0)} résultat{filteredData.reduce((acc, cat) => acc + cat.items.length, 0) > 1 ? "s" : ""} pour "{searchQuery}"
+          </div>
+          
+          {filteredData.length === 0 ? (
+            <div style={{
+              textAlign: "center",
+              padding: 60,
+              color: theme.muted,
+            }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
+              <p>Aucune invocation trouvée</p>
+            </div>
+          ) : (
+            filteredData.map((category) => (
+              category.items.map((item, idx) => (
+                <div
+                  key={`${category.id}-${idx}`}
+                  style={{
+                    ...styles.invocationCard,
+                    borderLeft: `4px solid ${theme.accent}`,
+                    padding: 24,
+                  }}
+                >
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 12,
+                  }}>
+                    <span style={{ fontSize: 16 }}>{category.emoji}</span>
+                    <span style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: theme.accentStrong,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}>
+                      {category.title}
+                    </span>
+                  </div>
+                  <div style={styles.invocationCardArabic}>
+                    {item.arabic}
+                  </div>
+                  <div style={{
+                    fontSize: "0.8rem",
+                    color: theme.accentStrong,
+                    fontStyle: "italic",
+                    marginBottom: 8,
+                    opacity: 0.8,
+                  }}>
+                    {item.translit}
+                  </div>
+                  <div style={styles.invocationCardTranslation}>
+                    {item.translation}
+                  </div>
+                  <div style={{
+                    ...styles.invocationCardSource,
+                    marginTop: 12,
+                  }}>
+                    📖 {item.source}
+                  </div>
+                </div>
+              ))
+            ))
+          )}
+        </div>
+      ) : selectedCategory ? (
+        /* CATEGORY DETAIL VIEW */
+        <div style={styles.stack}>
+          {/* Back button */}
+          <button
+            onClick={() => setSelectedCategory(null)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "12px 16px",
+              borderRadius: 12,
+              border: `1px solid ${theme.border}`,
+              background: theme.pageBg,
+              color: theme.text,
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: 14,
+              marginBottom: 20,
+              width: "fit-content",
+              transition: "all 0.2s ease",
+            }}
+          >
+            ← Retour aux catégories
+          </button>
+          
+          {/* Category header */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            marginBottom: 24,
+          }}>
+            <div style={{
+              width: 64,
+              height: 64,
+              borderRadius: 20,
+              background: theme.accent,
+              display: "grid",
+              placeItems: "center",
+              fontSize: 32,
+              boxShadow: `0 8px 24px ${theme.accent}40`,
+            }}>
+              {selectedCategory.emoji}
+            </div>
+            <div>
+              <h2 style={{
+                margin: 0,
+                fontSize: "1.5rem",
+                fontWeight: 700,
+                color: theme.text,
+              }}>
+                {selectedCategory.title}
+              </h2>
+              <p style={{
+                margin: "4px 0 0 0",
+                fontSize: 14,
+                color: theme.muted,
+              }}>
+                {selectedCategory.items.length} invocation{selectedCategory.items.length > 1 ? "s" : ""}
+              </p>
+            </div>
+          </div>
+          
+          {/* Invocation cards */}
+          {selectedCategory.items.map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                ...styles.invocationCard,
+                borderLeft: `4px solid ${theme.accent}`,
+                animation: `fadeInUp 0.3s ease-out ${idx * 0.05}s both`,
+              }}
+            >
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 12,
+              }}>
+                <span style={{
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  color: theme.accentStrong,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                }}>
+                  {item.title}
+                </span>
+                <span style={{
+                  fontSize: "0.7rem",
+                  color: theme.muted,
+                  background: theme.accentSoft,
+                  padding: "4px 8px",
+                  borderRadius: 6,
+                }}>
+                  📖 {item.source}
+                </span>
+              </div>
+              <div style={styles.invocationCardArabic}>
+                {item.arabic}
+              </div>
+              <div style={{
+                fontSize: "0.85rem",
+                color: theme.accentStrong,
+                fontStyle: "italic",
+                marginBottom: 8,
+                lineHeight: 1.5,
+              }}>
+                {item.translit}
+              </div>
+              <div style={styles.invocationCardTranslation}>
+                {item.translation}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* CATEGORIES GRID */
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+          gap: 14,
+        }}>
+          {filteredData.map((category, idx) => (
+            <div
+              key={category.id}
+              onClick={() => setSelectedCategory(category)}
+              style={{
+                background: theme.pageBg,
+                borderRadius: 20,
+                border: `1px solid ${theme.border}`,
+                padding: 24,
+                cursor: "pointer",
+                textAlign: "center",
+                transition: "all 0.25s ease",
+                position: "relative",
+                overflow: "hidden",
+                animation: `fadeInUp 0.4s ease-out ${idx * 0.05}s both`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.boxShadow = `0 12px 32px ${theme.accent}25`;
+                e.currentTarget.style.borderColor = theme.accent;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+                e.currentTarget.style.borderColor = theme.border;
+              }}
+            >
+              {/* Hover gradient overlay */}
+              <div style={{
+                position: "absolute",
+                inset: 0,
+                background: `linear-gradient(135deg, ${theme.accent}10 0%, transparent 100%)`,
+                opacity: 0,
+                transition: "opacity 0.25s ease",
+              }} className="category-hover" />
+              
+              <div style={{
+                fontSize: 40,
+                marginBottom: 12,
+                position: "relative",
+                zIndex: 1,
+              }}>
+                {category.emoji}
+              </div>
+              <div style={{
+                fontSize: "1rem",
+                fontWeight: 700,
+                color: theme.text,
+                marginBottom: 6,
+                position: "relative",
+                zIndex: 1,
+              }}>
+                {category.title}
+              </div>
+              <div style={{
+                fontSize: "0.8rem",
+                color: theme.muted,
+                position: "relative",
+                zIndex: 1,
+              }}>
+                {category.items.length} invocations
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        @keyframes fadeInUp {
+          from { 
+            opacity: 0; 
+            transform: translateY(20px); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0); 
+          }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
     </div>
   );
 }

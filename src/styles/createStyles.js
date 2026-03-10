@@ -1058,6 +1058,214 @@ export function createStyles(theme) {
       opacity: 0.45,
       cursor: "not-allowed",
     },
+
+    // ============================================
+    // INVOCATIONS PAGE - PREMIUM DESIGN
+    // ============================================
+    invocationHero: {
+      borderRadius: 24,
+      padding: 28,
+      background: theme.hero,
+      color: "#fff",
+      position: "relative",
+      overflow: "hidden",
+    },
+    invocationHeroOverlay: {
+      position: "absolute",
+      inset: 0,
+      background: "linear-gradient(135deg, rgba(139, 94, 52, 0.85) 0%, rgba(89, 64, 36, 0.9) 100%)",
+    },
+    invocationHeroContent: {
+      position: "relative",
+      zIndex: 1,
+    },
+    invocationHeroTitle: {
+      fontSize: "clamp(1.75rem, 4vw, 2.25rem)",
+      fontWeight: 800,
+      marginBottom: 8,
+      lineHeight: 1.2,
+    },
+    invocationHeroSubtitle: {
+      fontSize: "1rem",
+      opacity: 0.9,
+      lineHeight: 1.5,
+      maxWidth: 400,
+    },
+    invocationHeroIcon: {
+      fontSize: 48,
+      marginBottom: 16,
+    },
+    
+    // Search bar
+    invocationSearch: {
+      position: "relative",
+      marginBottom: 20,
+    },
+    invocationSearchInput: {
+      width: "100%",
+      height: 52,
+      borderRadius: 16,
+      border: `1px solid ${theme.border}`,
+      padding: "0 16px 0 48px",
+      fontSize: 15,
+      background: theme.pageBg,
+      color: theme.text,
+      outline: "none",
+      transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+    },
+    invocationSearchIcon: {
+      position: "absolute",
+      left: 16,
+      top: "50%",
+      transform: "translateY(-50%)",
+      fontSize: 18,
+      color: theme.muted,
+    },
+    
+    // Category Grid
+    invocationCategoryGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+      gap: 12,
+      marginBottom: 24,
+    },
+    invocationCategoryCard: {
+      borderRadius: 18,
+      padding: 20,
+      background: theme.pageBg,
+      border: `1px solid ${theme.border}`,
+      cursor: "pointer",
+      textAlign: "center",
+      transition: "all 0.2s ease",
+      display: "grid",
+      gap: 10,
+      alignContent: "center",
+    },
+    invocationCategoryCardActive: {
+      borderColor: theme.accent,
+      background: theme.accentSoft,
+      boxShadow: `0 0 0 1px ${theme.accent}`,
+    },
+    invocationCategoryEmoji: {
+      fontSize: 32,
+    },
+    invocationCategoryTitle: {
+      fontSize: "0.875rem",
+      fontWeight: 600,
+      color: theme.text,
+    },
+    invocationCategoryCount: {
+      fontSize: "0.75rem",
+      color: theme.muted,
+    },
+    
+    // Selected Category View
+    invocationSection: {
+      marginBottom: 16,
+    },
+    invocationSectionHeader: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 16,
+      paddingBottom: 12,
+      borderBottom: `1px solid ${theme.border}`,
+    },
+    invocationSectionBack: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "8px 14px",
+      borderRadius: 10,
+      border: `1px solid ${theme.border}`,
+      background: theme.pageBg,
+      color: theme.text,
+      cursor: "pointer",
+      fontWeight: 600,
+      fontSize: 13,
+      transition: "all 0.2s ease",
+    },
+    invocationSectionTitle: {
+      fontSize: "1.25rem",
+      fontWeight: 700,
+      color: theme.text,
+      flex: 1,
+    },
+    
+    // Invocation Card
+    invocationCard: {
+      borderRadius: 16,
+      padding: 20,
+      background: theme.pageBg,
+      border: `1px solid ${theme.border}`,
+      marginBottom: 16,
+      transition: "all 0.2s ease",
+    },
+    invocationCardArabic: {
+      fontSize: "clamp(1.5rem, 3vw, 2rem)",
+      fontFamily: '"Amiri", "Traditional Arabic", serif',
+      lineHeight: 1.8,
+      textAlign: "right",
+      color: theme.text,
+      marginBottom: 12,
+    },
+    invocationCardTranslit: {
+      fontSize: "0.875rem",
+      color: theme.accentStrong,
+      fontStyle: "italic",
+      marginBottom: 8,
+      lineHeight: 1.5,
+    },
+    invocationCardTranslation: {
+      fontSize: "0.95rem",
+      color: theme.muted,
+      lineHeight: 1.6,
+      marginBottom: 12,
+    },
+    invocationCardSource: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      padding: "4px 10px",
+      borderRadius: 6,
+      fontSize: "0.75rem",
+      fontWeight: 600,
+      background: theme.accentSoft,
+      color: theme.accentStrong,
+    },
+    
+    // Subcategory tabs
+    invocationSubcategoryTabs: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap",
+      marginBottom: 20,
+      padding: 4,
+      background: theme.pageBg,
+      borderRadius: 14,
+      border: `1px solid ${theme.border}`,
+    },
+    invocationSubcategoryTab: {
+      flex: 1,
+      minWidth: "fit-content",
+      padding: "10px 16px",
+      borderRadius: 10,
+      border: "none",
+      cursor: "pointer",
+      fontWeight: 600,
+      fontSize: "0.8rem",
+      transition: "all 0.2s ease",
+      background: "transparent",
+      color: theme.text,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      maxWidth: 150,
+    },
+    invocationSubcategoryTabActive: {
+      background: theme.accentGradient,
+      color: "#fff",
+    },
   };
 }
 

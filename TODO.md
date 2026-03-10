@@ -1,24 +1,35 @@
-# TODO - Refonte des Invocations avec Sous-catégories
+# TODO - Enrichissement des Invocations
 
-## Étape 1: Analyser les sources et structurer les données
-- [x] Analyser le fichier ReadingPlanPage.jsx existant
-- [x] Identifier les sources (sunnah.com/hisn, hadith)
-- [x] Structurer les sous-catégories par moment d'invocation
+## Statut: TERMINÉ ✅
 
-## Étape 2: Créer les données structurées
-- [x] Maison - En entrant/sortant de la maison
-- [x] Mosquée - En allant/entrant/sortant de la mosquée, adhan
-- [x] Prière - Ouverture, inclinaison, prosternation, tachahhoud, salawat
-- [x] Sommeil - Avant de dormir, au réveil, réveil nocturne
-- [x] Matin et soir - Invocations du matin/soir
-- [x] Voyage - Avant de partir, pendant, au retour
+## Catégories ajoutées:
 
-## Étape 3: Modifier le composant React
-- [x] Adapter le state pour gérer les sous-catégories
-- [x] Créer le rendu des catégories principales
-- [x] Créer le rendu des sous-catégories
-- [x] Ajouter le style pour les niveaux
+### Catégories originales (8):
+- [x] Maison
+- [x] Mosquée
+- [x] Prière
+- [x] Sommeil
+- [x] Matin et soir
+- [x] Voyage
+- [x] Protection
+- [x] Pardon
 
-## Étape 4: Vérification
-- [x] Tester que le code compile sans erreur
+### Nouvelles catégories ajoutées (17):
+- [x] Nourriture (avant/après manger, en buvant)
+- [x] Santé et maladie (maladie, guérison, visite malade)
+- [x] Dhikr (Tasbih, Tahmid, Takbir, Tahlil, Hawqala)
+- [x] Mariage (avant mariage, bénédiction)
+- [x] Connaissance et étude (avant d'étudier, début cours)
+- [x] Travail et profession (avant travail, entrer travail)
+- [x] Situations diverses (stress, peur, chagrin, joie, chose nouvelle)
+- [x] Environnement et nature (jardin, pluie, lune, lever/coucher soleil)
+- [x] Gratitude (remerciement général)
+- [x] Prière funéraire (pour le défunt, pour la famille)
+- [x] Voyage (complément - monter/descendre véhicule)
+- [x] Sexualité (avant/après relations conjugales)
+- [x] Vêtements (nouveaux vêtements, retirer vêtements)
+- [x] Maison (complément - avant dormir, nouvelle maison)
+- [x] Fin de journée (invocation de la nuit)
+
+## Total: 25 catégories d'invocations
 
