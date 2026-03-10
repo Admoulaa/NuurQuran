@@ -1,33 +1,24 @@
-# TODO - Refonte Complete Quran App
+# TODO - Refonte des Invocations avec Sous-catégories
 
-## Phase 1: Audio & Navigation (CRITIQUE)
-- [ ] 1.1 Corriger le changement de sourate avec conservation état play/pause
-- [ ] 1.2 Synchroniser Big Player et Mini Player
-- [ ] 1.3 Implémenter preload audio pour transitions fluides
+## Étape 1: Analyser les sources et structurer les données
+- [x] Analyser le fichier ReadingPlanPage.jsx existant
+- [x] Identifier les sources (sunnah.com/hisn, hadith)
+- [x] Structurer les sous-catégories par moment d'invocation
 
-## Phase 2: Grand Lecteur Premium
-- [ ] 2.1 Nouveau PlayerPage avec controls complets
-- [ ] 2.2 Affichage sourate/récitateur/verset
-- [ ] 2.3 Navigation entre sourates fonctionnelle
-- [ ] 2.4 Image du récitateur
+## Étape 2: Créer les données structurées
+- [x] Maison - En entrant/sortant de la maison
+- [x] Mosquée - En allant/entrant/sortant de la mosquée, adhan
+- [x] Prière - Ouverture, inclinaison, prosternation, tachahhoud, salawat
+- [x] Sommeil - Avant de dormir, au réveil, réveil nocturne
+- [x] Matin et soir - Invocations du matin/soir
+- [x] Voyage - Avant de partir, pendant, au retour
 
-## Phase 3: Mini Player Premium
-- [ ] 3.1 Design premium
-- [ ] 3.2 Controls play/pause
-- [ ] 3.3 Navigation vers lecteur
-- [ ] 3.4 Synchronisé avec grand lecteur
+## Étape 3: Modifier le composant React
+- [x] Adapter le state pour gérer les sous-catégories
+- [x] Créer le rendu des catégories principales
+- [x] Créer le rendu des sous-catégories
+- [x] Ajouter le style pour les niveaux
 
-## Phase 4: Page Lecture Améliorée
-- [ ] 4.1 Modes de lecture:
-  - [ ] Arabe seulement
-  - [ ] Arabe + traduction
-  - [ ] Arabe + traduction + phonétique
-  - [ ] Mode scroll continu
-- [ ] 4.2 Design immersif "Coran Pro"
-- [ ] 4.3 Traductions visibles
-
-## Phase 5: Design Premium
-- [ ] 5.1 Améliorer hiérarchie visuelle
-- [ ] 5.2 Meilleure typographie
-- [ ] 5.3 Cartes plus belles
+## Étape 4: Vérification
+- [x] Tester que le code compile sans erreur
 
