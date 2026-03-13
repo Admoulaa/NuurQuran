@@ -278,6 +278,12 @@ export const AUDIO_SOURCES = {
   MP3QURAN_SERVER_16: "https://server16.mp3quran.net",
 };
 
+// Surahs unavailable for specific reciters
+// Used to disable audio when per-verse doesn't work
+export const SURAH_UNAVAILABLE = {
+  "abd-sudais": [79], // An-Nazi'at - per-verse audio not available
+};
+
 // Mapping of reciter IDs to their mp3quran.net server paths for per-verse audio
 // Format: { reciterId: { server: "base_url", path: "server_path" } }
 export const RECITER_VERSE_SERVERS = {
@@ -285,10 +291,10 @@ export const RECITER_VERSE_SERVERS = {
     server: "https://server8.mp3quran.net",
     path: "afs/",
   },
-  "abd-sudais": {
+/* "abd-sudais": {
     server: "https://server11.mp3quran.net",
     path: "sds/",
-  },
+  }, // Désactivé - sourate 79 n'a pas audio verset par verset */
   "saud-shuraym": {
     server: "https://server7.mp3quran.net",
     path: "shur/",

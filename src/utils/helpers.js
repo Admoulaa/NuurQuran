@@ -11,13 +11,19 @@ import { RECITER_VERSE_SERVERS, RECITER_MAPPING } from "../data/constants";
 /**
  * Génère l'URL audio pour un verset spécifique
  * Utilise mp3quran.net pour les récitants supportés
+ * Retourne null si audio non disponible pour cette sourate/récitant
  * 
  * @param {number} surahNumber - Numéro de la sourate (1-114)
  * @param {number} verseNumber - Numéro du verset
  * @param {string} reciterId - ID du récitant
- * @returns {string} URL audio du verset
+ * @returns {string|null} URL audio du verset ou null
  */
 export function getVerseAudioUrl(surahNumber, verseNumber, reciterId) {
+  // Vérifier si cette sourate est indisponible pour ce récitant
+  if (SURAH_UNAVAILABLE[reciterId]?.includes(surahNumber)) {
+    return null; // Audio désactivé pour cette combinaison
+  }
+  
   const verse = padSurah(verseNumber);
   
   // Vérifier si le récitant a un serveur per-verse configuré
@@ -37,7 +43,13 @@ export function getVerseAudioUrl(surahNumber, verseNumber, reciterId) {
  * @param {string} reciterId - ID du récitant
  * @returns {boolean}
  */
-export function hasPerVerseAudio(reciterId) {
+
+export function hasPerVerseAudio(reciterId, surahNumber) {
+  // Vérifier si cette sourate est indisponible pour ce récitant
+  if (SURAH_UNAVAILABLE[reciterId]?.includes(surahNumber)) {
+    return false;
+  }
+  
   // Le récitant doit avoir une entrée dans RECITER_VERSE_SERVERS
   return !!RECITER_VERSE_SERVERS[reciterId];
 }
