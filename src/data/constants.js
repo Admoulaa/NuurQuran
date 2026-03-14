@@ -264,11 +264,8 @@ export const THEMES = {
   },
 };
 
-// Audio sources configuration
 export const AUDIO_SOURCES = {
-  // mp3quran.net per-verse audio servers
   MP3QURAN_VERSE: "https://server8.mp3quran.net",
-  // Fallback servers
   MP3QURAN_SERVER_7: "https://server7.mp3quran.net",
   MP3QURAN_SERVER_8: "https://server8.mp3quran.net",
   MP3QURAN_SERVER_10: "https://server10.mp3quran.net",
@@ -278,55 +275,45 @@ export const AUDIO_SOURCES = {
   MP3QURAN_SERVER_16: "https://server16.mp3quran.net",
 };
 
-// Surahs unavailable for specific reciters
-// Used to disable audio when per-verse doesn't work
 export const SURAH_UNAVAILABLE = {
-  "abd-sudais": [79], // An-Nazi'at - per-verse audio not available
+  "abd-sudais": [79],
 };
 
-// Mapping of reciter IDs to their mp3quran.net server paths for per-verse audio
-// Format: { reciterId: { server: "base_url", path: "server_path" } }
 export const RECITER_VERSE_SERVERS = {
   "mishary-alafasy": {
-    server: "https://server8.mp3quran.net",
+    server: "https://server8.mp3quran.net/",
     path: "afs/",
   },
-/* "abd-sudais": {
-    server: "https://server11.mp3quran.net",
-    path: "sds/",
-  }, // Désactivé - sourate 79 n'a pas audio verset par verset */
   "saud-shuraym": {
-    server: "https://server7.mp3quran.net",
+    server: "https://server7.mp3quran.net/",
     path: "shur/",
   },
   "husary": {
-    server: "https://server13.mp3quran.net",
+    server: "https://server13.mp3quran.net/",
     path: "husr/",
   },
   "minshawi": {
-    server: "https://server10.mp3quran.net",
+    server: "https://server10.mp3quran.net/",
     path: "minsh/",
   },
   "yasser-dosari": {
-    server: "https://server11.mp3quran.net",
+    server: "https://server11.mp3quran.net/",
     path: "yasser/",
   },
   "khalifa-tunaiji": {
-    server: "https://server12.mp3quran.net",
+    server: "https://server12.mp3quran.net/",
     path: "tnjy/",
   },
-  // Full-surah only (no per-verse audio available)
   "hani-rifai": {
-    server: "https://server8.mp3quran.net",
+    server: "https://server8.mp3quran.net/",
     path: "hani/",
   },
   "ahmad-alnufais": {
-    server: "https://server16.mp3quran.net",
+    server: "https://server16.mp3quran.net/",
     path: "nufais/Rewayat-Hafs-A-n-Assem/",
   },
 };
 
-// Legacy mapping for full-surah audio (le-coran.com)
 export const RECITER_MAPPING = {
   "mishary-alafasy": {
     lecoran_id: "mishari-al-afasi",
@@ -350,45 +337,21 @@ export const RECITER_MAPPING = {
   },
 };
 
-/**
- * RECITERS LIST
- * 
- * Mode definitions:
- * - hasPerVerse: true + timingAliases -> PER-VERSE MODE (full support)
- * - hasPerVerse: false or no timingAliases -> FULL-SURAH MODE ONLY
- * 
- * Verified reciters (technical confirmation):
- * PER-VERSE MODE (audio + timings):
- *   - Mishary Alafasy (ID 54 in timing API)
- *   - Abdulrahman Al-Sudais (ID 54 in timing API)
- *   - Saud Al-Shuraym (ID 31 in timing API)
- *   - Al-Husary (ID 118 in timing API)
- *   - Al-Minshawi (ID 112 in timing API)
- *   - Yasser Al-Dosari (ID 92 in timing API)
- *   - Khalifa Al Tunaiji (ID 24 in timing API)
- * 
- * FULL-SURAH MODE ONLY (audio exists, but NO timings):
- *   - Hani ar-Rifai (no timing ID found)
- *   - Ahmad Alnufais (no timing ID found)
- */
 export const RECITERS = [
-  // ============================================
-  // PER-VERSE MODE RECITERS (audio + timings)
-  // ============================================
   {
     id: "mishary-alafasy",
     name: "Mishary Rashid Alafasy",
     description: "Voix douce et fluide.",
-    photo: "https://ui-avatars.com/api/?name=مrashid+alafasy&background=8b5e34&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=MA&background=8b5e34&color=fff&size=256",
     audioServer: "https://server8.mp3quran.net/afs/",
-    timingAliases: ["mishary rashid alafasy", "mishary alafasy", "mishary alafasi"],
+    timingAliases: ["مشاري العفاسي", "mishary rashid alafasy", "mishary alafasy", "mishary alafasi"],
     hasPerVerse: true,
   },
   {
     id: "abd-sudais",
     name: "Abdulrahman Al-Sudais",
     description: "Récitation majestueuse et solennelle.",
-    photo: "https://ui-avatars.com/api/?name=عبدrahman+alsudais&background=1e3a8a&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=AS&background=1e3a8a&color=fff&size=256",
     audioServer: "https://server11.mp3quran.net/sds/",
     timingAliases: ["abdulrahman as-sudais", "عبدالرحمن السديس", "abd alrahman al sudais", "السديس"],
     hasPerVerse: true,
@@ -397,7 +360,7 @@ export const RECITERS = [
     id: "saud-shuraym",
     name: "Saud Al-Shuraym",
     description: "Récitation claire et expressive.",
-    photo: "https://ui-avatars.com/api/?name=سعود+الشريم&background=047857&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=SS&background=047857&color=fff&size=256",
     audioServer: "https://server7.mp3quran.net/shur/",
     timingAliases: ["saud al-shuraym", "سعود الشريم", "shuraym"],
     hasPerVerse: true,
@@ -406,7 +369,7 @@ export const RECITERS = [
     id: "husary",
     name: "Mahmoud Khalil Al-Husary",
     description: "Récitation magistrale et mémorable.",
-    photo: "https://ui-avatars.com/api/?name=محمود+الحصري&background=9d174d&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=MH&background=9d174d&color=fff&size=256",
     audioServer: "https://server13.mp3quran.net/husr/",
     timingAliases: ["mahmoud khalil al husary", "محمود خليل الحصري", "husary", "الحصري"],
     hasPerVerse: true,
@@ -415,7 +378,7 @@ export const RECITERS = [
     id: "minshawi",
     name: "Mohammed Siddiq Al-Minshawi",
     description: "Récitation émouvante et profonde.",
-    photo: "https://ui-avatars.com/api/?name=محمد+المنشاوي&background=7c2d12&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=MM&background=7c2d12&color=fff&size=256",
     audioServer: "https://server10.mp3quran.net/minsh/",
     timingAliases: ["mohammed siddiq al-minshawi", "محمد صديق المنشاوي", "minshawi", "المنشاوي"],
     hasPerVerse: true,
@@ -424,7 +387,7 @@ export const RECITERS = [
     id: "yasser-dosari",
     name: "Yasser Al-Dosari",
     description: "Voix expressive et très appréciée.",
-    photo: "https://ui-avatars.com/api/?name=ياسر+الدوسري&background=8b5e34&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=YD&background=8b5e34&color=fff&size=256",
     audioServer: "https://server11.mp3quran.net/yasser/",
     timingAliases: ["yasser al-dosari", "ياسر الدوسري", "yasser al dosari"],
     hasPerVerse: true,
@@ -433,19 +396,16 @@ export const RECITERS = [
     id: "khalifa-tunaiji",
     name: "Khalifa Al-Tunaiji",
     description: "Récitation claire et posée.",
-    photo: "https://ui-avatars.com/api/?name=خليفة+الطنيجي&background=1e3a8a&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=KT&background=1e3a8a&color=fff&size=256",
     audioServer: "https://server12.mp3quran.net/tnjy/",
     timingAliases: ["khalifa al-tunaiji", "خليفة الطنيجي", "tunaiji", "الطنيجي"],
     hasPerVerse: true,
   },
-  // ============================================
-  // FULL-SURAH MODE ONLY (no timings available)
-  // ============================================
   {
     id: "hani-rifai",
     name: "Hani ar-Rifai",
     description: "Récitation douce et mélodieuse.",
-    photo: "https://ui-avatars.com/api/?name=هاني+الرفاعي&background=047857&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=HR&background=047857&color=fff&size=256",
     audioServer: "https://server8.mp3quran.net/hani/",
     timingAliases: [],
     hasPerVerse: false,
@@ -454,19 +414,16 @@ export const RECITERS = [
     id: "ahmad-alnufais",
     name: "Ahmad Alnufais",
     description: "Récitation claire et équilibrée.",
-    photo: "https://ui-avatars.com/api/?name=أحمد+النفيعي&background=1e3a8a&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=AN&background=1e3a8a&color=fff&size=256",
     audioServer: "https://server16.mp3quran.net/nufais/Rewayat-Hafs-A-n-Assem/",
     timingAliases: [],
     hasPerVerse: false,
   },
-  // ============================================
-  // LEGACY RECITERS (full-surah only)
-  // ============================================
   {
     id: "abd-basit",
     name: "Abdelbasset Abdessamad",
     description: "Récitation magistrale et émouvante.",
-    photo: "https://ui-avatars.com/api/?name=عبدالباسط&background=1e3a8a&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=AB&background=1e3a8a&color=fff&size=256",
     audioServer: "https://audio.coran-islam.com/qurra/abd-al-basit-abd-as-samad/",
     timingAliases: ["abdelbasset abdessamad", "abd basit", "abdul basit"],
     hasPerVerse: false,
@@ -475,7 +432,7 @@ export const RECITERS = [
     id: "maher-muaiqly",
     name: "Maher Al Muaiqly",
     description: "Lecture claire et équilibrée.",
-    photo: "https://ui-avatars.com/api/?name=ماهر+المعيقيلي&background=9d174d&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=MM&background=9d174d&color=fff&size=256",
     audioServer: "https://audio.coran-islam.com/qurra/maher-al-muayqli/",
     timingAliases: ["maher al muaiqly", "maher al meaqli", "maher al-muaiqly"],
     hasPerVerse: false,
@@ -484,7 +441,7 @@ export const RECITERS = [
     id: "adel-kalbani",
     name: "Adel Al-Kalbani",
     description: "Récitation posée, adaptée au Tarawih.",
-    photo: "https://ui-avatars.com/api/?name=عادل+الكلباني&background=7c2d12&color=fff&size=256&font-size=0.4&length=2",
+    photo: "https://ui-avatars.com/api/?name=AK&background=7c2d12&color=fff&size=256",
     audioServer: "https://audio.coran-islam.com/qurra/adil-al-kalbani/",
     timingAliases: ["adel al kalbani", "adel al-kalbani", "adel al kalbany"],
     hasPerVerse: false,

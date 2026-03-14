@@ -23,9 +23,6 @@ export default function App() {
   const audioRef = useRef(null);
   const isSeekingRef = useRef(false);
 
-  // ============================================
-  // ÉTATS - Paramètres utilisateur
-  // ============================================
   const [activeTab, setActiveTab] = useState("today");
   const [language, setLanguage] = usePersistentState(STORAGE_KEYS.language, "fr");
   const [showPhonetic, setShowPhonetic] = usePersistentState(STORAGE_KEYS.phonetic, true);
@@ -37,18 +34,27 @@ export default function App() {
   const [themeId, setThemeId] = usePersistentState(STORAGE_KEYS.theme, "sand");
   const [verseRepeatCount, setVerseRepeatCount] = usePersistentState(STORAGE_KEYS.verseRepeatCount, 3);
   const [glowEnabled, setGlowEnabled] = usePersistentState(STORAGE_KEYS.glowEnabled, true);
-
   const [readingMode, setReadingMode] = usePersistentState("quran-pro-reading-mode", "translation");
-
-  const [isPerVerseMode, setIsPerVerseMode] = useState(false);
 
   const preloadAudioRef = useRef(null);
   const [preloadedVerse, setPreloadedVerse] = useState(null);
-
   const [search, setSearch] = useState("");
 
   // ============================================
-  // MÉMOS - Données dérivées
+  // BOUCLE D'APPRENTISSAGE
+  // ============================================
+  const [loopVerse, setLoopVerse] = useState(null);
+  const [loopProgress, setLoopProgress] = useState(0);
+
+  // Ref synchrone pour handleEnded — évite le délai des useEffect
+  const loopStateRef = useRef({ verse: null, progress: 0, target: 3 });
+
+  useEffect(() => { loopStateRef.current.verse = loopVerse; }, [loopVerse]);
+  useEffect(() => { loopStateRef.current.progress = loopProgress; }, [loopProgress]);
+  useEffect(() => { loopStateRef.current.target = verseRepeatCount; }, [verseRepeatCount]);
+
+  // ============================================
+  // MÉMOS
   // ============================================
   const theme = useMemo(() => THEMES[themeId] || THEMES.sand, [themeId]);
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -75,26 +81,17 @@ export default function App() {
 
   const dailyAyah = useMemo(() => getDailyAyah(), []);
 
-  const previousSurah = useMemo(() => {
-    if (currentSurahNumber > 1) return SURAHS.find((s) => s.number === currentSurahNumber - 1);
-    return null;
-  }, [currentSurahNumber]);
-
-  const nextSurah = useMemo(() => {
-    if (currentSurahNumber < 114) return SURAHS.find((s) => s.number === currentSurahNumber + 1);
-    return null;
-  }, [currentSurahNumber]);
-
   // ============================================
   // HOOKS - Données distantes
   // ============================================
   const remoteState = useSurahData(currentSurahNumber, language);
   const timingState = useTimingData(selectedReciter, currentSurahNumber);
-
-  // ============================================
-  // HOOKS - Audio player
-  // ============================================
   const audioPlayer = useAudioPlayer(audioRef);
+
+  // isPerVerseMode dérivé automatiquement
+  const isPerVerseMode = selectedReciter?.hasPerVerse === true &&
+                         selectedReciter?.timingAliases?.length > 0 &&
+                         timingState.hasTimings;
 
   // ============================================
   // SUIVI DU VERSET ACTIF
@@ -167,7 +164,6 @@ export default function App() {
   // ============================================
   // ACTIONS UTILISATEUR
   // ============================================
-
   const toggleBookmark = useCallback((surahNumber) => {
     setBookmarks((prev) =>
       prev.includes(surahNumber)
@@ -194,13 +190,11 @@ export default function App() {
   }, [audioPlayer, setAudioStarted]);
 
   const selectVerse = useCallback((verseNumber) => {
-    console.log(`[DEBUG] Manual select verse ${verseNumber}`);
     isSeekingRef.current = true;
     setCurrentVerse(verseNumber);
 
     const audio = audioRef.current;
     if (!audio || !audioPlayer.isReady) {
-      console.log('[DEBUG] Audio not ready, just highlight');
       setTimeout(() => { isSeekingRef.current = false; }, 1000);
       return;
     }
@@ -208,14 +202,12 @@ export default function App() {
     let seekTime = 0;
 
     if (timingState.timings?.length > 0) {
-      // ✅ FIX : variable timing correctement assignée
       const timing = findTimingForVerse(timingState.timings, verseNumber);
       if (timing && Number.isFinite(timing.startMs)) {
         seekTime = timing.startMs / 1000;
       }
     }
 
-    // Fallback proportionnel uniquement si pas de timing trouvé
     if (seekTime === 0 && audio.duration > 0) {
       const totalVerses = timingState.timings.length || remoteState.data?.ayahs?.length || verseNumber;
       seekTime = ((verseNumber - 1) / totalVerses) * audio.duration;
@@ -230,11 +222,9 @@ export default function App() {
 
     setTimeout(() => {
       isSeekingRef.current = false;
-      console.log('[DEBUG] Seeking protection ended');
     }, 1000);
   }, [timingState.timings, remoteState.data?.ayahs, audioPlayer, audioRef, setCurrentVerse, setAudioStarted]);
 
-  // Navigation entre sourates
   const goToPreviousSurah = useCallback(() => {
     if (currentSurahNumber > 1) {
       setCurrentSurahNumber(currentSurahNumber - 1);
@@ -259,30 +249,90 @@ export default function App() {
   }, [audioPlayer]);
 
   // ============================================
-  // PRELOAD - Charge le verset suivant pendant la lecture
+  // TOGGLE BOUCLE VERSET
   // ============================================
-  useEffect(() => {
-    if (!isPerVerseMode || !preloadAudioRef.current) return;
-
-    const verses = remoteState.data?.ayahs || [];
-    const nextVerse = currentVerse + 1;
-
-    if (nextVerse <= verses.length && preloadedVerse !== nextVerse) {
-      const nextUrl = getVerseAudioUrl(currentSurahNumber, nextVerse, selectedReciterId);
-      preloadAudioRef.current.src = nextUrl;
-      preloadAudioRef.current.load();
-      setPreloadedVerse(nextVerse);
+  const toggleLoopVerseHandler = useCallback((verseNumber) => {
+    if (loopStateRef.current.verse === verseNumber) {
+      // Désactiver
+      loopStateRef.current.verse = null;
+      loopStateRef.current.progress = 0;
+      setLoopVerse(null);
+      setLoopProgress(0);
+    } else {
+      // Activer
+      loopStateRef.current.verse = verseNumber;
+      loopStateRef.current.progress = 0;
+      setLoopVerse(verseNumber);
+      setLoopProgress(0);
+      selectVerse(verseNumber);
     }
-  }, [isPerVerseMode, currentVerse, currentSurahNumber, selectedReciterId, remoteState.data, preloadedVerse]);
+  }, [selectVerse]);
 
   // ============================================
-  // GESTION FIN AUDIO
+  // GESTION FIN AUDIO - boucle + per-verse
   // ============================================
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const handleEnded = async () => {
+      const { verse: currentLoopVerse, progress: currentLoopProgress, target } = loopStateRef.current;
+
+      // MODE BOUCLE ACTIF
+      if (currentLoopVerse !== null) {
+        const newProgress = currentLoopProgress + 1;
+
+        if (newProgress < target) {
+          // Mettre à jour la ref ET le state synchroniquement
+          loopStateRef.current.progress = newProgress;
+          setLoopProgress(newProgress);
+
+          if (isPerVerseMode) {
+            const url = getVerseAudioUrl(currentSurahNumber, currentLoopVerse, selectedReciterId);
+            audio.src = url;
+            audio.load();
+            await audio.play();
+          } else {
+            const timing = findTimingForVerse(timingState.timings, currentLoopVerse);
+            if (timing) {
+              audio.currentTime = timing.startMs / 1000;
+              await audio.play();
+            }
+          }
+        } else {
+          // Répétitions terminées — passer au verset suivant
+          loopStateRef.current.verse = null;
+          loopStateRef.current.progress = 0;
+          setLoopVerse(null);
+          setLoopProgress(0);
+
+          const verses = remoteState.data?.ayahs || [];
+          const nextVerse = currentLoopVerse + 1;
+
+          if (nextVerse <= verses.length) {
+            setCurrentVerse(nextVerse);
+
+            if (isPerVerseMode) {
+              const url = getVerseAudioUrl(currentSurahNumber, nextVerse, selectedReciterId);
+              audio.src = url;
+              audio.load();
+              await audio.play();
+            } else {
+              const timing = findTimingForVerse(timingState.timings, nextVerse);
+              if (timing) {
+                audio.currentTime = timing.startMs / 1000;
+                await audio.play();
+              }
+            }
+          } else {
+            if (currentSurahNumber < 114) goToNextSurah();
+            else audioPlayer.pause();
+          }
+        }
+        return;
+      }
+
+      // MODE PER-VERSE NORMAL (sans boucle)
       if (!isPerVerseMode) return;
 
       const verses = remoteState.data?.ayahs || [];
@@ -304,31 +354,43 @@ export default function App() {
         setCurrentVerse(nextVerse);
         await audio.play();
       } else {
-        if (currentSurahNumber < 114) {
-          goToNextSurah();
-        } else {
-          setIsPerVerseMode(false);
-          audioPlayer.pause();
-        }
+        if (currentSurahNumber < 114) goToNextSurah();
+        else audioPlayer.pause();
       }
     };
 
     audio.addEventListener("ended", handleEnded);
     return () => audio.removeEventListener("ended", handleEnded);
-  }, [isPerVerseMode, currentVerse, currentSurahNumber, selectedReciterId, remoteState.data, audioPlayer, setCurrentVerse, goToNextSurah]);
+  }, [isPerVerseMode, currentVerse, currentSurahNumber, selectedReciterId, remoteState.data, timingState.timings, audioPlayer, setCurrentVerse, goToNextSurah]);
+
+  // ============================================
+  // PRELOAD
+  // ============================================
+  useEffect(() => {
+    if (!isPerVerseMode || !preloadAudioRef.current || loopVerse !== null) return;
+
+    const verses = remoteState.data?.ayahs || [];
+    const nextVerse = currentVerse + 1;
+
+    if (nextVerse <= verses.length && preloadedVerse !== nextVerse) {
+      const nextUrl = getVerseAudioUrl(currentSurahNumber, nextVerse, selectedReciterId);
+      preloadAudioRef.current.src = nextUrl;
+      preloadAudioRef.current.load();
+      setPreloadedVerse(nextVerse);
+    }
+  }, [isPerVerseMode, currentVerse, currentSurahNumber, selectedReciterId, remoteState.data, preloadedVerse, loopVerse]);
 
   useEffect(() => {
     setPreloadedVerse(null);
-    setIsPerVerseMode(false);
+    setLoopVerse(null);
+    setLoopProgress(0);
   }, [currentSurahNumber]);
-
-  const toggleLoopVerseHandler = useCallback((verseNumber) => {
-    console.log("Boucle verset:", verseNumber);
-  }, []);
 
   const resetLearning = useCallback(() => {
     audioPlayer.seekTo(0);
     setCurrentVerse(1);
+    setLoopVerse(null);
+    setLoopProgress(0);
   }, [audioPlayer, setCurrentVerse]);
 
   // ============================================
@@ -427,6 +489,9 @@ export default function App() {
           onOpenSurah={openSurah}
           onSelectVerse={selectVerse}
           onToggleLoopVerse={toggleLoopVerseHandler}
+          loopVerse={loopVerse}
+          loopProgress={loopProgress}
+          verseRepeatCount={verseRepeatCount}
           audioRef={audioRef}
           styles={styles}
           theme={theme}

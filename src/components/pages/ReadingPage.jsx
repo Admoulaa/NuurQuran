@@ -4,13 +4,8 @@ import { Card } from "../Card";
 import { SurahCard } from "../SurahCard";
 import { VerseCard } from "../VerseCard";
 import { SURAHS } from "../../data/constants";
-import { normalize, getTimingForVerse } from "../../utils/helpers";
+import { normalize, findTimingForVerse } from "../../utils/helpers";
 
-/**
- * ReadingPage - Page de lecture Coran Pro
- * Mode lecture pure : focus sur le texte, traductions visibles
- * Modes: Arabe seul, Arabe + Traduction, Complet (Arabe + Trad + Phonétique)
- */
 export function ReadingPage({
   currentSurah,
   currentSurahNumber,
@@ -32,26 +27,23 @@ export function ReadingPage({
   audioError,
   timingState,
   glowEnabled,
-  loopMode,
-  loopTargetVerse,
-  repeatProgress,
-  repeatTarget,
   onTogglePlay,
   onEnableAudio,
   onOpenSurah,
   onSelectVerse,
   onToggleLoopVerse,
+  loopVerse,
+  loopProgress,
+  verseRepeatCount,
   audioRef,
   styles,
   theme,
-  readingMode, // "arabic" | "translation" | "full"
+  readingMode,
   setReadingMode,
 }) {
   const verseRefs = useRef({});
-  const isSeekingRef = useRef(false);
   const containerRef = useRef(null);
 
-  // Scroll vers le verset actif
   useEffect(() => {
     const target = verseRefs.current[currentVerse];
     if (target) {
@@ -59,7 +51,6 @@ export function ReadingPage({
     }
   }, [currentVerse, currentSurahNumber]);
 
-  // Filtrer les sourates pour la recherche
   const filteredSurahs = useMemo(() => {
     const query = normalize(search);
     if (!query) return SURAHS;
@@ -73,41 +64,20 @@ export function ReadingPage({
   }, [search]);
 
   const verses = remoteState.data?.ayahs || [];
-
-  // Déterminer si le suivi visuel doit être actif
   const isTrackActive = isPlaying && timingState.timings && timingState.timings.length > 0;
 
-  // Handle select verse
   const handleSelectVerse = useCallback((verseNumber) => {
-    isSeekingRef.current = true;
     onSelectVerse(verseNumber);
-    
-    const audio = audioRef?.current;
-    if (audio) {
-      const exactTiming = getTimingForVerse(timingState.timings, verseNumber);
-      if (exactTiming) {
-        audio.currentTime = exactTiming.startMs / 1000;
-      } else if (audio.duration && verses.length) {
-        audio.currentTime = ((verseNumber - 1) / verses.length) * audio.duration;
-      }
-    }
-    
-    setTimeout(() => {
-      isSeekingRef.current = false;
-    }, 500);
-  }, [onSelectVerse, timingState.timings, audioRef, verses.length]);
+  }, [onSelectVerse]);
 
-  // Déterminer si un verset doit être mis en évidence
   const isVerseActive = useCallback((verseNumber) => {
     return verseNumber === currentVerse;
   }, [currentVerse]);
 
-  // Déterminer si le glow doit être affiché
   const shouldShowGlow = useCallback((verseNumber) => {
     return glowEnabled && isVerseActive(verseNumber) && isPlaying;
   }, [glowEnabled, isVerseActive, isPlaying]);
 
-  // Langues disponibles
   const languages = [
     { value: "fr", label: "Français" },
     { value: "en", label: "English" },
@@ -117,7 +87,6 @@ export function ReadingPage({
     { value: "id", label: "Indonesia" },
   ];
 
-  // Modes de lecture
   const readingModes = [
     { id: "arabic", label: "Arabe", icon: "🕋" },
     { id: "translation", label: "Arabe + Trad", icon: "📜" },
@@ -152,30 +121,25 @@ export function ReadingPage({
 
       {/* Barre d'outils */}
       <Card styles={styles} theme={theme}>
-        {/* Recherche + Sélection */}
         <div style={styles.readingToolbarGrid}>
           <div style={styles.fieldWrap}>
-            <label htmlFor="surah-search" style={{ ...styles.label, color: theme.text }}>
-              🔍 Recherche
-            </label>
+            <label htmlFor="surah-search" style={{ ...styles.label, color: theme.text }}>🔍 Recherche</label>
             <input
               id="surah-search"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Nom, numéro ou arabe..."
               style={{ ...styles.input, borderColor: theme.border, background: theme.pageBg, color: theme.text }}
             />
           </div>
 
           <div style={styles.fieldWrap}>
-            <label htmlFor="surah-select" style={{ ...styles.label, color: theme.text }}>
-              📖 Sourate
-            </label>
+            <label htmlFor="surah-select" style={{ ...styles.label, color: theme.text }}>📖 Sourate</label>
             <select
               id="surah-select"
               value={currentSurahNumber}
-              onChange={(event) => {
-                setCurrentSurahNumber(Number(event.target.value));
+              onChange={(e) => {
+                setCurrentSurahNumber(Number(e.target.value));
                 setCurrentVerse(1);
               }}
               style={{ ...styles.select, borderColor: theme.border, background: theme.pageBg, color: theme.text }}
@@ -189,13 +153,11 @@ export function ReadingPage({
           </div>
 
           <div style={styles.fieldWrap}>
-            <label htmlFor="lang-select" style={{ ...styles.label, color: theme.text }}>
-              🌐 Langue
-            </label>
+            <label htmlFor="lang-select" style={{ ...styles.label, color: theme.text }}>🌐 Langue</label>
             <select
               id="lang-select"
               value={language}
-              onChange={(event) => setLanguage(event.target.value)}
+              onChange={(e) => setLanguage(e.target.value)}
               style={{ ...styles.select, borderColor: theme.border, background: theme.pageBg, color: theme.text }}
             >
               {languages.map((lang) => (
@@ -205,7 +167,6 @@ export function ReadingPage({
           </div>
         </div>
 
-        {/* Sélecteur de mode de lecture */}
         <div style={{ marginTop: 16 }}>
           <label style={{ ...styles.label, color: theme.text, marginBottom: 10, display: "block" }}>
             📚 Mode de lecture
@@ -231,11 +192,10 @@ export function ReadingPage({
           </div>
         </div>
 
-        {/* Toggle phonétique (visible en mode complet) */}
         {readingMode === "full" && (
           <div style={{ marginTop: 12 }}>
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setShowPhonetic(!showPhonetic)}
               style={{
                 ...styles.secondaryButton,
@@ -248,6 +208,24 @@ export function ReadingPage({
             >
               {showPhonetic ? "✓ Phonétique" : "○ Phonétique"}
             </button>
+          </div>
+        )}
+
+        {/* Indicateur boucle active */}
+        {loopVerse !== null && (
+          <div style={{
+            marginTop: 12,
+            padding: "10px 14px",
+            borderRadius: 10,
+            background: theme.accentSoft,
+            color: theme.accentStrong,
+            fontSize: 13,
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}>
+            🔂 Boucle active — Verset {loopVerse} · {loopProgress + 1}/{verseRepeatCount} répétitions
           </div>
         )}
       </Card>
@@ -279,7 +257,7 @@ export function ReadingPage({
         </Card>
       ) : null}
 
-      {/* En-tête de la sourate */}
+      {/* En-tête sourate */}
       {!search && remoteState.data && (
         <Card styles={styles} theme={theme}>
           <div style={styles.surahSummaryTop}>
@@ -324,18 +302,16 @@ export function ReadingPage({
           </div>
         </Card>
       ) : (
-        /* Liste des versets */
         <div style={styles.stack}>
           {verses.map((verse) => {
             const isActive = isVerseActive(verse.numberInSurah);
             const showGlow = shouldShowGlow(verse.numberInSurah);
-            
+            const isLoopActive = loopVerse === verse.numberInSurah;
+
             return (
               <div
                 key={verse.numberInSurah}
-                ref={(node) => {
-                  verseRefs.current[verse.numberInSurah] = node;
-                }}
+                ref={(node) => { verseRefs.current[verse.numberInSurah] = node; }}
               >
                 <VerseCard
                   verse={verse}
@@ -345,13 +321,10 @@ export function ReadingPage({
                   showTranslation={readingMode !== "arabic"}
                   language={language}
                   onSelect={() => handleSelectVerse(verse.numberInSurah)}
-                  onToggleLoop={(event) => {
-                    event.stopPropagation();
-                    onToggleLoopVerse(verse.numberInSurah);
-                  }}
-                  loopActive={loopMode && loopTargetVerse === verse.numberInSurah}
-                  repeatProgress={repeatProgress}
-                  repeatTarget={repeatTarget}
+                  onToggleLoop={onToggleLoopVerse}
+                  loopActive={isLoopActive}
+                  loopProgress={isLoopActive ? loopProgress : 0}
+                  repeatTarget={verseRepeatCount}
                   styles={styles}
                   theme={theme}
                 />
@@ -365,25 +338,11 @@ export function ReadingPage({
       {!search && remoteState.data && verses.length > 0 && (
         <Card styles={styles} theme={theme}>
           <div style={{ textAlign: "center", padding: "20px 0" }}>
-            <div style={{ 
-              fontSize: 24, 
-              color: theme.accentStrong,
-              marginBottom: 8,
-            }}>
-              🤲
-            </div>
-            <div style={{ 
-              fontSize: 16, 
-              fontWeight: 700, 
-              color: theme.text,
-            }}>
+            <div style={{ fontSize: 24, color: theme.accentStrong, marginBottom: 8 }}>🤲</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: theme.text }}>
               Fin de {currentSurah?.translit}
             </div>
-            <div style={{ 
-              fontSize: 14, 
-              color: theme.muted,
-              marginTop: 8,
-            }}>
+            <div style={{ fontSize: 14, color: theme.muted, marginTop: 8 }}>
               {verses.length} versets
             </div>
           </div>
@@ -392,4 +351,3 @@ export function ReadingPage({
     </div>
   );
 }
-

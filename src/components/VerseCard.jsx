@@ -10,7 +10,7 @@ export function VerseCard({
   onSelect,
   onToggleLoop,
   loopActive,
-  repeatProgress,
+  loopProgress,
   repeatTarget,
   styles,
   theme,
@@ -21,8 +21,8 @@ export function VerseCard({
       onClick={() => onSelect(verse.numberInSurah)}
       style={{
         ...styles.verseCard,
-        borderColor: active ? theme.accent : theme.border,
-        background: active ? theme.accentSoft : theme.pageBg,
+        borderColor: active ? theme.accent : loopActive ? theme.accentStrong : theme.border,
+        background: active ? theme.accentSoft : loopActive ? theme.successSoft : theme.pageBg,
         color: theme.text,
         boxShadow: active && glowEnabled
           ? `0 0 0 1px ${theme.accent} inset, 0 4px 20px ${theme.glow}`
@@ -30,7 +30,7 @@ export function VerseCard({
       }}
       aria-pressed={active}
     >
-      {/* En-tête du verset */}
+      {/* En-tête */}
       <div style={{
         display: "flex",
         justifyContent: "space-between",
@@ -38,13 +38,8 @@ export function VerseCard({
         gap: 10,
         marginBottom: 8,
       }}>
-        {/* Gauche : badge numéro + point */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          flexShrink: 0,
-        }}>
+        {/* Gauche : badge + point */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           <span style={{
             width: 32,
             height: 32,
@@ -64,12 +59,8 @@ export function VerseCard({
           <StatusLight active={active && glowEnabled} styles={styles} theme={theme} />
         </div>
 
-        {/* Droite : badge "En cours" + bouton loop */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-        }}>
+        {/* Droite : badges + bouton boucle */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {active && (
             <span style={{
               padding: "4px 10px",
@@ -83,28 +74,46 @@ export function VerseCard({
               ▶ En cours
             </span>
           )}
+
+          {/* Bouton boucle — affiche progression si actif */}
           <button
             type="button"
-            onClick={(event) => {
-              event.stopPropagation();
+            onClick={(e) => {
+              e.stopPropagation();
               onToggleLoop(verse.numberInSurah);
             }}
             style={{
               borderRadius: 6,
-              padding: "6px 10px",
+              padding: "5px 10px",
               fontWeight: 600,
               cursor: "pointer",
               fontSize: 12,
-              border: `1px solid ${loopActive ? theme.accent : theme.border}`,
+              border: `1px solid ${loopActive ? theme.accentStrong : theme.border}`,
               background: loopActive ? theme.accentSoft : "transparent",
               color: loopActive ? theme.accentStrong : theme.muted,
               lineHeight: 1,
               display: "flex",
               alignItems: "center",
+              gap: 4,
+              whiteSpace: "nowrap",
             }}
             aria-pressed={loopActive}
+            title={loopActive ? `Boucle active : ${loopProgress + 1}/${repeatTarget}` : `Répéter ce verset ${repeatTarget} fois`}
           >
-            {loopActive ? `🔂 ${repeatProgress}/${repeatTarget}` : "🔁"}
+            {loopActive ? (
+              <>
+                🔂
+                <span style={{
+                  background: theme.accent,
+                  color: "#fff",
+                  borderRadius: 4,
+                  padding: "1px 5px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                }}>
+{loopProgress}/{repeatTarget}                </span>
+              </>
+            ) : "🔁"}
           </button>
         </div>
       </div>
@@ -123,23 +132,14 @@ export function VerseCard({
 
       {/* Phonétique */}
       {showPhonetic && verse.transliteration && (
-        <div style={{
-          ...styles.verseTransliteration,
-          color: theme.muted,
-          fontStyle: "italic",
-        }}>
+        <div style={{ ...styles.verseTransliteration, color: theme.muted, fontStyle: "italic" }}>
           {verse.transliteration}
         </div>
       )}
 
       {/* Traduction */}
       {showTranslation && verse.translations?.[language] && (
-        <div style={{
-          ...styles.verseTranslation,
-          color: theme.text,
-          fontSize: 15,
-          lineHeight: 1.7,
-        }}>
+        <div style={{ ...styles.verseTranslation, color: theme.text, fontSize: 15, lineHeight: 1.7 }}>
           {verse.translations[language]}
         </div>
       )}
