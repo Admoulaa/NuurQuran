@@ -5,7 +5,7 @@ import { usePersistentState } from "./hooks/usePersistentState";
 import { useSurahData } from "./hooks/useSurahData";
 import { useTimingData } from "./hooks/useTimingData";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
-import { getDailyAyah, padSurah, findCurrentVerse, findTimingForVerse, getVerseAudioUrl, hasPerVerseAudio } from "./utils/helpers";
+import { getDailyAyah, padSurah, findCurrentVerse, findTimingForVerse, getVerseAudioUrl, hasPerVerseAudio, getTimingForVerse } from "./utils/helpers";
 import { createStyles } from "./styles/createStyles";
 
 import { AppShell } from "./components/AppShell";
@@ -21,13 +21,14 @@ import { SettingsPage } from "./components/pages/SettingsPage";
 
 export default function App() {
   const audioRef = useRef(null);
+  const isSeekingRef = useRef(false);
 
   // ============================================
   // ÉTATS - Paramètres utilisateur
   // ============================================
   const [activeTab, setActiveTab] = useState("today");
   const [language, setLanguage] = usePersistentState(STORAGE_KEYS.language, "fr");
-  const [showPhonetic, setShowPhonetic] = usePersistentState(STORAGE_KEYS.phonetic, true);
+  const [showPhonetic, setShowPhonetic ] = usePersistentState(STORAGE_KEYS.phonetic, true);
   const [bookmarks, setBookmarks] = usePersistentState(STORAGE_KEYS.bookmarks, []);
   const [currentSurahNumber, setCurrentSurahNumber] = usePersistentState(STORAGE_KEYS.lastSurah, 1);
   const [currentVerse, setCurrentVerse] = usePersistentState(STORAGE_KEYS.lastVerse, 1);
@@ -128,6 +129,12 @@ export default function App() {
         return;
       }
       
+      // Skip during manual seeking
+      if (isSeekingRef.current) {
+        animationId = requestAnimationFrame(updateVerse);
+        return;
+      }
+      
       const verse = findCurrentVerse(timingState.timings, currentTimeMs);
       
       // Only update if verse changed AND is valid
@@ -203,36 +210,46 @@ export default function App() {
   }, [audioPlayer, setAudioStarted]);
 
   const selectVerse = useCallback((verseNumber) => {
-    const audio = audioRef.current;
+    console.log(`[DEBUG] Manual select verse ${verseNumber}`);
+    isSeekingRef.current = true;
+    setCurrentVerse(verseNumber);
     
-    // Always use full-surah audio with seek for reliability
-    // Per-verse mode causes issues (audio stops, overlapping, etc.)
-    if (audio && timingState.hasTimings) {
-      const timing = findTimingForVerse(timingState.timings, verseNumber);
-      if (timing) {
-        // First set the verse, then seek - this ensures correct tracking
-        setCurrentVerse(verseNumber);
-        // Small delay to ensure state is updated before seek
-        setTimeout(() => {
-          audioPlayer.seekTo(timing.startMs / 1000);
-          if (!audioPlayer.isPlaying) {
-            audioPlayer.play();
-            setAudioStarted(true);
-          }
-        }, 50);
-      }
-    } else if (audio) {
-      // No timings - just start from beginning
-      setCurrentVerse(verseNumber);
+    const audio = audioRef.current;
+    if (!audio || !audioPlayer.isReady) {
+      console.log('[DEBUG] Audio not ready, just highlight');
       setTimeout(() => {
-        audioPlayer.seekTo(0);
-        audioPlayer.play();
-        setAudioStarted(true);
-      }, 50);
-    } else {
-      setCurrentVerse(verseNumber);
+        isSeekingRef.current = false;
+      }, 1000);
+      return;
     }
-  }, [timingState.timings, timingState.hasTimings, audioPlayer, setCurrentVerse, setAudioStarted]);
+    
+    let seekTime = 0;
+    
+    if (timingState.timings?.length > 0) {
+      const timing = getTimingForVerse(timingState.timings, verseNumber);
+      if (timing && Number.isFinite(timing.startMs)) {
+        seekTime = timing.startMs / 1000;
+      }
+    }
+    
+    if (seekTime === 0 && audio.duration > 0) {
+      const totalVerses = timingState.timings.length || remoteState.data?.ayahs?.length || verseNumber;
+      seekTime = ((verseNumber - 1) / totalVerses) * audio.duration;
+    }
+    
+    audioPlayer.seekTo(seekTime);
+    
+    if (!audioPlayer.isPlaying) {
+      audioPlayer.play();
+      setAudioStarted(true);
+    }
+    
+    // Protect from RAF for 1s after seek
+    setTimeout(() => {
+      isSeekingRef.current = false;
+      console.log('[DEBUG] Seeking protection ended');
+    }, 1000);
+  }, [timingState.timings, remoteState.data?.ayahs, audioPlayer, audioRef, setCurrentVerse, setAudioStarted]);
 
   // Navigation entre sourates
   const goToPreviousSurah = useCallback(() => {
