@@ -8,55 +8,46 @@ import { RECITER_VERSE_SERVERS, RECITER_MAPPING } from "../data/constants";
 // AUDIO PAR VERSET - mp3quran.net
 // ============================================
 
-/**
- * Génère l'URL audio pour un verset spécifique
- * Utilise mp3quran.net pour les récitants supportés
- * Retourne null si audio non disponible pour cette sourate/récitant
- * 
- * @param {number} surahNumber - Numéro de la sourate (1-114)
- * @param {number} verseNumber - Numéro du verset
- * @param {string} reciterId - ID du récitant
- * @returns {string|null} URL audio du verset ou null
- */
 export function getVerseAudioUrl(surahNumber, verseNumber, reciterId) {
-  // Vérifier si cette sourate est indisponible pour ce récitant
   if (SURAH_UNAVAILABLE[reciterId]?.includes(surahNumber)) {
-    return null; // Audio désactivé pour cette combinaison
+    return null;
   }
   
   const verse = padSurah(verseNumber);
-  
-  // Vérifier si le récitant a un serveur per-verse configuré
   const verseServer = RECITER_VERSE_SERVERS[reciterId];
   
   if (verseServer) {
-    // Utiliser le serveur mp3quran.net du récitant
     return `${verseServer.server}${verseServer.path}${verse}.mp3`;
   }
   
-  // Fallback par défaut: mp3quran Alafasy
   return `https://server8.mp3quran.net/afs/${verse}.mp3`;
 }
 
-/**
- * Vérifie si le récitant supporte l'audio par verset
- * @param {string} reciterId - ID du récitant
- * @returns {boolean}
- */
-
 export function hasPerVerseAudio(reciterId, surahNumber) {
-  // Vérifier si cette sourate est indisponible pour ce récitant
   if (SURAH_UNAVAILABLE[reciterId]?.includes(surahNumber)) {
     return false;
   }
-  
-  // Le récitant doit avoir une entrée dans RECITER_VERSE_SERVERS
   return !!RECITER_VERSE_SERVERS[reciterId];
 }
 
+// ============================================
+// TIMINGS - Toutes les fonctions utilisent la clé "verse"
+// ============================================
+
+/**
+ * Trouver le timing pour un verset spécifique
+ * Clé utilisée : "verse" (format de useTimingData)
+ */
+export function findTimingForVerse(timings, verseNumber) {
+  if (!timings) return null;
+  return timings.find(t => t.verse === verseNumber) || null;
+}
+
+// Alias pour compatibilité — pointe vers findTimingForVerse
+export const getTimingForVerse = findTimingForVerse;
+
 /**
  * Trouver le verset actuel depuis le temps audio
- * Returns null if no verse matches (rather than returning last verse)
  */
 export function findCurrentVerse(timings, currentTimeMs) {
   if (!timings || timings.length === 0) return null;
@@ -73,46 +64,12 @@ export function findCurrentVerse(timings, currentTimeMs) {
     }
   }
   
-  // Return null instead of last verse - let caller decide what to do
   return null;
 }
 
 /**
- * Trouver le timing pour un verset spécifique
+ * Recherche binaire du verset depuis le temps audio
  */
-export function findTimingForVerse(timings, verseNumber) {
-  if (!timings) return null;
-  return timings.find(t => t.verse === verseNumber) || null;
-}
-
-/**
- * Formater le numéro de sourate pour l'URL audio
- */
-export function formatSurahNumber(num) {
-  return String(num).padStart(3, "0");
-}
-
-// ============================================
-// Utils originales conservées
-// ============================================
-
-export function padSurah(number) {
-  return String(number).padStart(3, "0");
-}
-
-export function normalize(value) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9' ]/g, "")
-    .trim();
-}
-
-export function getTimingForVerse(timings, verseNumber) {
-  return timings.find((item) => item.ayah === verseNumber) || null;
-}
-
 export function getVerseFromTime(timings, currentMs) {
   if (!timings || timings.length === 0) return null;
 
@@ -125,84 +82,99 @@ export function getVerseFromTime(timings, currentMs) {
     const timing = timings[mid];
 
     if (currentMs >= timing.startMs && currentMs <= timing.endMs) {
-      return timing.ayah;
+      return timing.verse;
     } else if (currentMs < timing.startMs) {
       right = mid - 1;
     } else {
-      result = timing.ayah;
+      result = timing.verse;
       left = mid + 1;
     }
   }
 
   if (result !== null) return result;
-  if (currentMs < timings[0].startMs) {
-    return timings[0].ayah;
-  }
-  return timings[timings.length - 1].ayah;
+  if (currentMs < timings[0].startMs) return timings[0].verse;
+  return timings[timings.length - 1].verse;
 }
 
 export function isNearVerseEnd(timings, currentMs, marginMs = 150) {
   if (!timings || timings.length === 0) return false;
-  
   const verse = getVerseFromTime(timings, currentMs);
   if (!verse) return false;
-  
-  const timing = getTimingForVerse(timings, verse);
+  const timing = findTimingForVerse(timings, verse);
   if (!timing) return false;
-  
   return currentMs >= timing.endMs - marginMs;
 }
 
 export function isNearVerseStart(timings, currentMs, marginMs = 200) {
   if (!timings || timings.length === 0) return false;
-  
   const verse = getVerseFromTime(timings, currentMs);
   if (!verse) return false;
-  
-  const timing = getTimingForVerse(timings, verse);
+  const timing = findTimingForVerse(timings, verse);
   if (!timing) return false;
-  
   return currentMs <= timing.startMs + marginMs;
 }
 
+export function getNextVerse(timings, currentVerse) {
+  if (!timings || timings.length === 0) return null;
+  const currentTiming = findTimingForVerse(timings, currentVerse);
+  if (!currentTiming) return null;
+  const nextTiming = findTimingForVerse(timings, currentVerse + 1);
+  return nextTiming ? currentVerse + 1 : null;
+}
+
+export function getVerseDuration(timings, verseNumber) {
+  const timing = findTimingForVerse(timings, verseNumber);
+  if (!timing) return 0;
+  return timing.endMs - timing.startMs;
+}
+
+/**
+ * Normalise des timings depuis une source externe vers le format { verse, startMs, endMs }
+ */
 export function normalizeTimingSource(timings) {
   if (!timings || !Array.isArray(timings)) return [];
   
   return timings
     .map((item) => {
-      const ayah = item.ayah ?? item.verse ?? item.verseNumber ?? 0;
+      const verse = item.verse ?? item.ayah ?? item.verseNumber ?? 0;
       const startMs = item.startMs ?? item.start_time ?? item.start ?? 0;
       const endMs = item.endMs ?? item.end_time ?? item.end ?? 0;
       
       return {
-        ayah: Number(ayah),
+        verse: Number(verse),
         startMs: Number(startMs),
         endMs: Number(endMs),
       };
     })
     .filter(
       (item) =>
-        item.ayah > 0 && Number.isFinite(item.startMs) && Number.isFinite(item.endMs) && item.endMs > item.startMs
+        item.verse > 0 &&
+        Number.isFinite(item.startMs) &&
+        Number.isFinite(item.endMs) &&
+        item.endMs > item.startMs
     )
     .sort((a, b) => a.startMs - b.startMs);
 }
 
-export function getNextVerse(timings, currentVerse) {
-  if (!timings || timings.length === 0) return null;
-  
-  const currentTiming = getTimingForVerse(timings, currentVerse);
-  if (!currentTiming) return null;
-  
-  const nextVerse = currentVerse + 1;
-  const nextTiming = getTimingForVerse(timings, nextVerse);
-  
-  return nextTiming ? nextVerse : null;
+// ============================================
+// Utils génériques
+// ============================================
+
+export function padSurah(number) {
+  return String(number).padStart(3, "0");
 }
 
-export function getVerseDuration(timings, verseNumber) {
-  const timing = getTimingForVerse(timings, verseNumber);
-  if (!timing) return 0;
-  return timing.endMs - timing.startMs;
+export function formatSurahNumber(num) {
+  return String(num).padStart(3, "0");
+}
+
+export function normalize(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9' ]/g, "")
+    .trim();
 }
 
 export function clamp(value, min, max) {
