@@ -1,8 +1,3 @@
-/**
- * MiniPlayer - Mini lecteur premium synchronisé
- * Version compacte du grand lecteur avec les mêmes fonctionnalités essentielles
- * Synchronisé avec le grand lecteur via props
- */
 export function MiniPlayer({
   visible,
   currentSurah,
@@ -11,7 +6,6 @@ export function MiniPlayer({
   selectedReciter,
   isPlaying,
   audioReady,
-  audioError,
   onOpen,
   onTogglePlay,
   onClose,
@@ -22,165 +16,115 @@ export function MiniPlayer({
 }) {
   if (!visible) return null;
 
-  // Fallback image si nécessaire
   const reciterImage = selectedReciter?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedReciter?.name || "R")}&background=8b5e34&color=fff&size=128`;
+
+  const btnCircle = {
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    margin: 0,
+    lineHeight: 1,
+    flexShrink: 0,
+    boxSizing: "border-box",
+    fontFamily: "inherit",
+    border: "none",
+    background: "transparent",
+    borderRadius: "50%",
+    width: 32,
+    height: 32,
+    color: theme.muted,
+    fontSize: 14,
+  };
 
   return (
     <div style={styles.miniPlayerWrap}>
-      <div style={{ 
-        ...styles.miniPlayer, 
-        background: theme.pageBg, 
-        borderColor: theme.border 
+      <div style={{
+        ...styles.miniPlayer,
+        background: theme.pageBg,
+        borderColor: theme.border,
+        alignItems: "center",
+        minHeight: 64,
       }}>
-        {/* Image récitant */}
         <img
           src={reciterImage}
           alt={selectedReciter?.name}
-          style={styles.miniPlayerImage}
+          style={{ ...styles.miniPlayerImage, flexShrink: 0, alignSelf: "center" }}
           onError={(e) => {
             e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedReciter?.name || "R")}&background=8b5e34&color=fff&size=128`;
           }}
         />
 
-        {/* Infos principales - clic pour ouvrir */}
-        <button 
-          type="button" 
-          onClick={onOpen} 
-          style={{
-            ...styles.miniPlayerMain,
-            flex: 1,
-            minWidth: 0,
-          }}
+        <button
+          type="button"
+          onClick={onOpen}
+          style={{ ...styles.miniPlayerMain, flex: 1, minWidth: 0 }}
         >
-          <div style={{ 
-            ...styles.miniPlayerEyebrow, 
-            color: theme.accentStrong 
-          }}>
+          <div style={{ ...styles.miniPlayerEyebrow, color: theme.accentStrong }}>
             {isPlaying ? "▶ Lecture" : "⏸ En pause"}
           </div>
-          <div style={{ 
-            ...styles.miniPlayerTitle, 
-            color: theme.text 
-          }}>
+          <div style={{ ...styles.miniPlayerTitle, color: theme.text }}>
             {currentSurah?.translit || "Sourate"}
           </div>
-          <div style={{ 
-            ...styles.miniPlayerMeta, 
-            color: theme.muted 
-          }}>
+          <div style={{ ...styles.miniPlayerMeta, color: theme.muted }}>
             {selectedReciter?.name || "Récitant"} · V.{currentVerse}/{totalVerses || "?"}
           </div>
         </button>
 
-        {/* Contrôles */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {/* Bouton Previous */}
-          {onPreviousSurah && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onPreviousSurah();
-              }}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                border: "none",
-                background: "transparent",
-                color: theme.muted,
-                fontSize: 14,
-                cursor: "pointer",
-                display: "grid",
-                placeItems: "center",
-              }}
-              aria-label="Sourate précédente"
-            >
-              ⏮
-            </button>
-          )}
+        {/* Contrôles — hauteur fixe, tous centrés */}
+        <div style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 4,
+          flexShrink: 0,
+          alignSelf: "center",
+        }}>
+          <button type="button" onClick={(e) => { e.stopPropagation(); onPreviousSurah?.(); }} style={btnCircle} aria-label="Précédent">⏮</button>
 
-          {/* Bouton Play/Pause */}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onTogglePlay();
-            }}
+            onClick={(e) => { e.stopPropagation(); onTogglePlay(); }}
             disabled={!audioReady}
-            aria-label={isPlaying ? "Mettre en pause" : "Lancer la lecture"}
+            aria-label={isPlaying ? "Pause" : "Lecture"}
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: "50%",
+              ...btnCircle,
+              width: 40,
+              height: 40,
               border: "none",
               background: audioReady ? theme.accentGradient : theme.border,
               color: "#fff",
-              fontSize: 16,
+              fontSize: 15,
               cursor: audioReady ? "pointer" : "not-allowed",
               opacity: audioReady ? 1 : 0.5,
-              display: "grid",
-              placeItems: "center",
-              boxShadow: audioReady ? "0 4px 12px rgba(139, 94, 52, 0.25)" : "none",
+              boxShadow: audioReady ? "0 4px 12px rgba(139,94,52,0.25)" : "none",
             }}
-          >
-            {isPlaying ? "⏸" : "▶"}
-          </button>
+          >{isPlaying ? "⏸" : "▶"}</button>
 
-          {/* Bouton Next */}
-          {onNextSurah && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onNextSurah();
-              }}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                border: "none",
-                background: "transparent",
-                color: theme.muted,
-                fontSize: 14,
-                cursor: "pointer",
-                display: "grid",
-                placeItems: "center",
-              }}
-              aria-label="Sourate suivante"
-            >
-              ⏭
-            </button>
-          )}
+          <button type="button" onClick={(e) => { e.stopPropagation(); onNextSurah?.(); }} style={btnCircle} aria-label="Suivant">⏭</button>
 
-          {/* Bouton fermer */}
-          {onClose && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                border: `1px solid ${theme.border}`,
-                background: "transparent",
-                color: theme.muted,
-                fontSize: 14,
-                cursor: "pointer",
-                display: "grid",
-                placeItems: "center",
-              }}
-              aria-label="Fermer"
-            >
-              ✕
-            </button>
-          )}
+          {/* ✕ — même hauteur que les autres, outline au lieu de border pour éviter le décalage */}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            aria-label="Fermer"
+            style={{
+              ...btnCircle,
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              border: "none",
+              outline: `1px solid ${theme.border}`,
+              outlineOffset: "-1px",
+              background: "transparent",
+              color: theme.muted,
+              fontSize: 12,
+            }}
+          >✕</button>
         </div>
       </div>
     </div>
   );
 }
-

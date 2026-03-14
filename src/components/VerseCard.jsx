@@ -1,10 +1,5 @@
 import { StatusLight } from "./StatusLight";
 
-/**
- * VerseCard - Carte de verset Coran Pro
- * Design premium pour l'affichage des versets
- * Supporte plusieurs modes d'affichage
- */
 export function VerseCard({
   verse,
   active,
@@ -29,30 +24,62 @@ export function VerseCard({
         borderColor: active ? theme.accent : theme.border,
         background: active ? theme.accentSoft : theme.pageBg,
         color: theme.text,
-        boxShadow: active && glowEnabled 
-          ? `0 0 0 1px ${theme.accent} inset, 0 4px 20px ${theme.glow}` 
+        boxShadow: active && glowEnabled
+          ? `0 0 0 1px ${theme.accent} inset, 0 4px 20px ${theme.glow}`
           : "0 2px 12px rgba(0,0,0,0.03)",
       }}
       aria-pressed={active}
     >
       {/* En-tête du verset */}
-      <div style={styles.verseTopRow}>
-        <div style={styles.verseTopLeft}>
-          <span 
-            style={{ 
-              ...styles.verseBadge, 
-              background: active ? theme.accent : theme.accentSoft,
-              color: active ? "#fff" : theme.accentStrong,
-            }}
-          >
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 10,
+        marginBottom: 8,
+      }}>
+        {/* Gauche : badge numéro + point */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexShrink: 0,
+        }}>
+          <span style={{
+            width: 32,
+            height: 32,
+            borderRadius: 8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: 700,
+            fontSize: 13,
+            lineHeight: 1,
+            flexShrink: 0,
+            background: active ? theme.accent : theme.accentSoft,
+            color: active ? "#fff" : theme.accentStrong,
+          }}>
             {verse.numberInSurah}
           </span>
           <StatusLight active={active && glowEnabled} styles={styles} theme={theme} />
         </div>
-        
-        <div style={styles.verseTopActions}>
+
+        {/* Droite : badge "En cours" + bouton loop */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+        }}>
           {active && (
-            <span style={{ ...styles.liveBadge, background: theme.accentGradient }}>
+            <span style={{
+              padding: "4px 10px",
+              borderRadius: 6,
+              fontWeight: 700,
+              fontSize: 11,
+              background: theme.accentGradient,
+              color: "#fff",
+              lineHeight: 1,
+            }}>
               ▶ En cours
             </span>
           )}
@@ -63,10 +90,17 @@ export function VerseCard({
               onToggleLoop(verse.numberInSurah);
             }}
             style={{
-              ...styles.loopChip,
+              borderRadius: 6,
+              padding: "6px 10px",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontSize: 12,
+              border: `1px solid ${loopActive ? theme.accent : theme.border}`,
               background: loopActive ? theme.accentSoft : "transparent",
-              borderColor: loopActive ? theme.accent : theme.border,
               color: loopActive ? theme.accentStrong : theme.muted,
+              lineHeight: 1,
+              display: "flex",
+              alignItems: "center",
             }}
             aria-pressed={loopActive}
           >
@@ -76,10 +110,10 @@ export function VerseCard({
       </div>
 
       {/* Texte arabe */}
-      <div 
-        dir="rtl" 
-        style={{ 
-          ...styles.verseArabic, 
+      <div
+        dir="rtl"
+        style={{
+          ...styles.verseArabic,
           color: theme.text,
           fontFamily: '"Amiri", "Traditional Arabic", serif',
         }}
@@ -87,10 +121,10 @@ export function VerseCard({
         {verse.arabic}
       </div>
 
-      {/* Phonétique (optionnel) */}
+      {/* Phonétique */}
       {showPhonetic && verse.transliteration && (
-        <div style={{ 
-          ...styles.verseTransliteration, 
+        <div style={{
+          ...styles.verseTransliteration,
           color: theme.muted,
           fontStyle: "italic",
         }}>
@@ -98,10 +132,10 @@ export function VerseCard({
         </div>
       )}
 
-      {/* Traduction (optionnelle) */}
+      {/* Traduction */}
       {showTranslation && verse.translations?.[language] && (
-        <div style={{ 
-          ...styles.verseTranslation, 
+        <div style={{
+          ...styles.verseTranslation,
           color: theme.text,
           fontSize: 15,
           lineHeight: 1.7,
@@ -112,4 +146,3 @@ export function VerseCard({
     </button>
   );
 }
-

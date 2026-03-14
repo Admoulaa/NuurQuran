@@ -27,7 +27,7 @@ export function createStyles(theme) {
     },
 
     // ============================================
-    // PAGE HEADER - Plus épuré
+    // PAGE HEADER
     // ============================================
     pageHeader: {
       display: "flex",
@@ -60,7 +60,7 @@ export function createStyles(theme) {
     },
 
     // ============================================
-    // CARDS - Design Coran Pro
+    // CARDS
     // ============================================
     card: {
       background: theme.pageBg,
@@ -240,7 +240,7 @@ export function createStyles(theme) {
     },
 
     // ============================================
-    // PLAYER - GRAND LECTEUR PREMIUM CORAN PRO
+    // PLAYER
     // ============================================
     playerHero: {
       background: theme.pageBg,
@@ -293,8 +293,6 @@ export function createStyles(theme) {
       fontWeight: 600,
       color: theme.accentStrong,
     },
-
-    // Progress bar - Style Coran Pro
     playerProgressWrap: {
       marginTop: 4,
     },
@@ -321,8 +319,6 @@ export function createStyles(theme) {
       fontWeight: 500,
       color: theme.muted,
     },
-
-    // Player controls - Design moderne
     playerControls: {
       display: "flex",
       justifyContent: "center",
@@ -355,8 +351,6 @@ export function createStyles(theme) {
       color: theme.text,
       fontSize: 16,
     },
-
-    // Navigation
     playerNav: {
       display: "flex",
       justifyContent: "space-between",
@@ -379,8 +373,6 @@ export function createStyles(theme) {
       fontSize: 13,
       transition: "all 200ms ease",
     },
-
-    // Helper text
     playerHelperText: {
       marginTop: 16,
       padding: 12,
@@ -456,7 +448,7 @@ export function createStyles(theme) {
     },
 
     // ============================================
-    // READING PAGE - STYLE CORAN PRO
+    // READING PAGE
     // ============================================
     readingToolbarGrid: {
       display: "grid",
@@ -508,8 +500,6 @@ export function createStyles(theme) {
       lineHeight: 1.5,
       color: theme.muted,
     },
-
-    // Mode selector - Design Coran Pro
     readingModeSelector: {
       display: "flex",
       gap: 8,
@@ -626,6 +616,7 @@ export function createStyles(theme) {
       height: 8,
       borderRadius: "50%",
       display: "inline-block",
+      flexShrink: 0,
     },
     surahSummaryTop: {
       display: "flex",
@@ -662,33 +653,41 @@ export function createStyles(theme) {
       background: theme.accentSoft,
       boxShadow: `0 0 0 1px ${theme.accent}`,
     },
+    // ✅ FIX : flexWrap nowrap + alignItems center strict
     verseTopRow: {
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
       gap: 10,
-      flexWrap: "wrap",
+      flexWrap: "nowrap",
       marginBottom: 8,
     },
+    // ✅ FIX : flexShrink 0 pour éviter l'écrasement
     verseTopLeft: {
       display: "flex",
       alignItems: "center",
       gap: 8,
+      flexShrink: 0,
     },
     verseTopActions: {
       display: "flex",
       alignItems: "center",
       gap: 6,
       flexWrap: "wrap",
+      justifyContent: "flex-end",
     },
+    // ✅ FIX : display flex au lieu de grid pour centrage fiable
     verseBadge: {
       width: 32,
       height: 32,
       borderRadius: 8,
-      display: "grid",
-      placeItems: "center",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
       fontWeight: 700,
       fontSize: 13,
+      flexShrink: 0,
+      lineHeight: 1,
       background: theme.accentSoft,
       color: theme.accentStrong,
     },
@@ -710,7 +709,6 @@ export function createStyles(theme) {
       background: theme.pageBg,
       color: theme.text,
     },
-    // ARABIC - Font Mushaf authentique
     verseArabic: {
       marginTop: 8,
       fontSize: "clamp(1.75rem, 4vw, 2.2rem)",
@@ -923,7 +921,7 @@ export function createStyles(theme) {
     },
 
     // ============================================
-    // MINI PLAYER - CORAN PRO STYLE
+    // MINI PLAYER
     // ============================================
     miniPlayerWrap: {
       position: "fixed",
@@ -1060,7 +1058,7 @@ export function createStyles(theme) {
     },
 
     // ============================================
-    // INVOCATIONS PAGE - PREMIUM DESIGN
+    // INVOCATIONS PAGE
     // ============================================
     invocationHero: {
       borderRadius: 24,
@@ -1095,8 +1093,6 @@ export function createStyles(theme) {
       fontSize: 48,
       marginBottom: 16,
     },
-    
-    // Search bar
     invocationSearch: {
       position: "relative",
       marginBottom: 20,
@@ -1121,8 +1117,6 @@ export function createStyles(theme) {
       fontSize: 18,
       color: theme.muted,
     },
-    
-    // Category Grid
     invocationCategoryGrid: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
@@ -1158,8 +1152,6 @@ export function createStyles(theme) {
       fontSize: "0.75rem",
       color: theme.muted,
     },
-    
-    // Selected Category View
     invocationSection: {
       marginBottom: 16,
     },
@@ -1191,8 +1183,6 @@ export function createStyles(theme) {
       color: theme.text,
       flex: 1,
     },
-    
-    // Invocation Card
     invocationCard: {
       borderRadius: 16,
       padding: 20,
@@ -1233,8 +1223,6 @@ export function createStyles(theme) {
       background: theme.accentSoft,
       color: theme.accentStrong,
     },
-    
-    // Subcategory tabs
     invocationSubcategoryTabs: {
       display: "flex",
       gap: 8,
@@ -1268,4 +1256,3 @@ export function createStyles(theme) {
     },
   };
 }
-
